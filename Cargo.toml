@@ -1,0 +1,13 @@
+[package]
+name = "graphics_tester"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+graphics-shapes = "0.1.6"
+buffer-graphics-lib = "0.8.3"
+pixels-graphics-lib = "0.7.2"
+winit = "0.27.2"
+anyhow = "1.0.66"
