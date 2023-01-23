@@ -1,6 +1,6 @@
 use anyhow::Result;
 use buffer_graphics_lib::color::{BLACK, BLUE, CYAN, GREEN, LIGHT_GRAY, MAGENTA, RED, WHITE, YELLOW};
-use buffer_graphics_lib::drawable::{Drawable, DrawType};
+use buffer_graphics_lib::drawable::{Drawable, DrawType, fill, stroke};
 use buffer_graphics_lib::Graphics;
 use buffer_graphics_lib::shapes::CreateDrawable;
 use buffer_graphics_lib::text::format::{Positioning, TextFormat};
@@ -17,23 +17,52 @@ use graphics_shapes::polygon::Polygon;
 use graphics_shapes::rect::Rect;
 use graphics_shapes::triangle::{AnglePosition, FlatSide, Triangle};
 
-#[derive(Default)]
+struct Animation {
+    pub value: f32,
+    pub value_change: f32,
+    pub next_update: f32,
+    pub update_rate: f32
+}
+
+impl Animation {
+    
+    
+    fn value_int(&self) -> isize {
+        self.value as isize
+    }
+    
+    fn update(&mut self, delta: f32) {
+        self.next_update -= delta;
+        if self.next_update <= 0.0 {
+            self.value += self.value_change;
+            self.next_update = self.update_rate;
+        }
+    }
+    pub fn new(value: f32, value_change: f32, next_update: f32, update_rate: f32) -> Self {
+        Self { value, value_change, next_update, update_rate }
+    }
+}
+
 struct Example {
     current_test: usize,
+    fast: Animation,
+    should_quit: bool
 }
 
 fn main() -> Result<()> {
-    let system = Box::new(Example::default());
+    let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001) });
     run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, WindowScaling::Auto, "Testing", system)?;
     Ok(())
 }
 
 impl System for Example {
     fn action_keys(&self) -> Vec<VirtualKeyCode> {
-        vec![VirtualKeyCode::Left, VirtualKeyCode::Right]
+        vec![VirtualKeyCode::Left, VirtualKeyCode::Right, VirtualKeyCode::Space, VirtualKeyCode::Escape]
     }
 
-    fn update(&mut self, delta: f32) {}
+    fn update(&mut self, delta: f32) {
+        self.fast.update(delta);
+    }
     fn render(&self, graphics: &mut Graphics) {
         graphics.clear(BLACK);
         match self.current_test {
@@ -51,6 +80,10 @@ impl System for Example {
             11 => test_11(graphics),
             12 => test_12(graphics),
             13 => test_13(graphics),
+            14 => test_14(graphics, self.fast.value_int()),
+            15 => test_15(graphics, self.fast.value_int()),
+            16 => test_16(graphics, self.fast.value_int()),
+            17 => test_17(graphics, self.fast.value_int()),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -62,7 +95,15 @@ impl System for Example {
             if self.current_test > 0 {
                 self.current_test -= 1;
             }
+        } else if keys.contains(&VirtualKeyCode::Space) {
+            self.current_test = 17;
+        } else if keys.contains(&VirtualKeyCode::Escape) {
+            self.should_quit = true;
         }
+    }
+
+    fn should_exit(&self) -> bool {
+        self.should_quit
     }
 }
 
@@ -179,7 +220,7 @@ fn test_5(graphics: &mut Graphics) {
 fn test_6(graphics: &mut Graphics) {
     draw_title(graphics, "Draw offset");
 
-    let drawable = Drawable::from_obj(Rect::new((100,100),(120,120)), DrawType::Fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((100,100),(120,120)), fill(BLUE));
     graphics.draw(&drawable);
     graphics.draw_offset((20, 20), &drawable);
     graphics.draw_offset((-20, -20), &drawable);
@@ -188,7 +229,7 @@ fn test_6(graphics: &mut Graphics) {
 fn test_7(graphics: &mut Graphics) {
     draw_title(graphics, "Drawable mutation");
 
-    let drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), DrawType::Fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), fill(BLUE));
     let red = drawable.with_draw_type(DrawType::Stroke(RED));
     let rotated = drawable.with_rotation(45);
     let larger = drawable.with_scale(1.2);
@@ -198,30 +239,30 @@ fn test_7(graphics: &mut Graphics) {
     graphics.draw_offset((100, 60), &rotated);
     graphics.draw_offset((100, 90), &smaller);
     graphics.draw_offset((100, 120), &larger);
-    graphics.draw(&Drawable::from_obj(Rect::new((128,118),(152,142)).as_polygon(),DrawType::Fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new((128,118),(152,142)).as_polygon(),fill(BLUE)));
 }
 
 fn test_8(graphics: &mut Graphics) {
     draw_title(graphics, "Polygons");
     let poly1=  Drawable::from_obj(Polygon::new(vec![(30,30),(40,29),(50,50),(40,60)]), DrawType::Stroke(BLUE));
     graphics.draw(&poly1);
-    graphics.draw_offset((0,60), &poly1.with_draw_type(DrawType::Fill(YELLOW)));
-    graphics.draw_offset((60,60), &poly1.with_draw_type(DrawType::Fill(YELLOW)).with_rotation(45));
-    graphics.draw_offset((120,60), &poly1.with_draw_type(DrawType::Fill(YELLOW)).with_rotation(80));
-    graphics.draw_offset((180,60), &poly1.with_draw_type(DrawType::Fill(YELLOW)).with_rotation(160));
-    graphics.draw_offset((00,120), &poly1.with_draw_type(DrawType::Fill(MAGENTA)).with_scale(1.5));
+    graphics.draw_offset((0,60), &poly1.with_draw_type(fill(YELLOW)));
+    graphics.draw_offset((60,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(45));
+    graphics.draw_offset((120,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(80));
+    graphics.draw_offset((180,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(160));
+    graphics.draw_offset((00,120), &poly1.with_draw_type(fill(MAGENTA)).with_scale(1.5));
 }
 
 fn test_9(graphics: &mut Graphics) {
     draw_title(graphics, "Polygon mutation");
 
-    let neg_drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), DrawType::Fill(BLUE));
+    let neg_drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), fill(BLUE));
     let neg_scaled = neg_drawable.with_scale(1.2);
 
     graphics.draw_offset(QUAD_BL, &neg_drawable);
     graphics.draw_offset(QUAD_BL + (40,0), &neg_scaled);
 
-    let drawable = Drawable::from_obj(Rect::new((10,10),(30,30)).as_polygon(), DrawType::Fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((10,10),(30,30)).as_polygon(), fill(BLUE));
     let scaled = drawable.with_scale(1.2);
 
     graphics.draw_offset(QUAD_TL, &drawable);
@@ -231,42 +272,42 @@ fn test_9(graphics: &mut Graphics) {
 fn test_10(graphics: &mut Graphics) {
     draw_title(graphics, "Off screen squares");
 
-    graphics.draw(&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), DrawType::Fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), DrawType::Fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), fill(BLUE)));
 
-    graphics.draw_offset((50,50),&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), DrawType::Fill(BLUE)));
-    graphics.draw_offset((-50,-50),&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), DrawType::Fill(BLUE)));
+    graphics.draw_offset((50,50),&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), fill(BLUE)));
+    graphics.draw_offset((-50,-50),&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), fill(BLUE)));
 }
 
 fn test_11(graphics: &mut Graphics) {
     draw_title(graphics, "Off screen circles");
 
-    graphics.draw(&Drawable::from_obj(Circle::new(TOP_LEFT ,10), DrawType::Fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), DrawType::Fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Circle::new(TOP_LEFT ,10), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), fill(BLUE)));
 
-    graphics.draw_offset((50,50),&Drawable::from_obj(Circle::new(TOP_LEFT ,10), DrawType::Fill(BLUE)));
-    graphics.draw_offset((-50,-50),&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), DrawType::Fill(BLUE)));
+    graphics.draw_offset((50,50),&Drawable::from_obj(Circle::new(TOP_LEFT ,10), fill(BLUE)));
+    graphics.draw_offset((-50,-50),&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), fill(BLUE)));
 }
 
 fn test_12(graphics: &mut Graphics) {
     draw_title(graphics, "Off screen polygons");
 
-    graphics.draw(&Drawable::from_obj(Polygon::new(vec![TOP_LEFT - (10,10),TOP_LEFT + (10,-10), TOP_LEFT + (10,10), TOP_LEFT + (-10,10)]), DrawType::Fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Polygon::new(vec![BOTTOM_RIGHT - (10,10),BOTTOM_RIGHT + (10,-10), BOTTOM_RIGHT + (10,10), BOTTOM_RIGHT + (-10,10)]), DrawType::Fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(vec![TOP_LEFT - (10,10),TOP_LEFT + (10,-10), TOP_LEFT + (10,10), TOP_LEFT + (-10,10)]), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(vec![BOTTOM_RIGHT - (10,10),BOTTOM_RIGHT + (10,-10), BOTTOM_RIGHT + (10,10), BOTTOM_RIGHT + (-10,10)]), fill(BLUE)));
 
-    let left_poly = Drawable::from_obj(Polygon::new(vec![(-10,50),(20,50),(20,70),(-10,70)]), DrawType::Fill(BLUE));
+    let left_poly = Drawable::from_obj(Polygon::new(vec![(-10,50),(20,50),(20,70),(-10,70)]), fill(BLUE));
     graphics.draw(&left_poly);
     graphics.draw_offset((50,0),&left_poly);
 
-    let top_poly = Drawable::from_obj(Polygon::new(vec![(200,-10),(220,-10),(220,30),(200,30)]), DrawType::Fill(BLUE));
+    let top_poly = Drawable::from_obj(Polygon::new(vec![(200,-10),(220,-10),(220,30),(200,30)]), fill(BLUE));
     graphics.draw(&top_poly);
     graphics.draw_offset((0,70),&top_poly);
 
-    let right_poly = Drawable::from_obj(Polygon::new(vec![(230,130),(260,130),(260,150),(230,150)]), DrawType::Fill(BLUE));
+    let right_poly = Drawable::from_obj(Polygon::new(vec![(230,130),(260,130),(260,150),(230,150)]), fill(BLUE));
     graphics.draw(&right_poly);
     graphics.draw_offset((-50,0),&right_poly);
 
-    let bottom_poly = Drawable::from_obj(Polygon::new(vec![(100,230),(120,230),(120,260),(100,260)]), DrawType::Fill(BLUE));
+    let bottom_poly = Drawable::from_obj(Polygon::new(vec![(100,230),(120,230),(120,260),(100,260)]), fill(BLUE));
     graphics.draw(&bottom_poly);
     graphics.draw_offset((0,-70),&bottom_poly);
 }
@@ -274,8 +315,52 @@ fn test_12(graphics: &mut Graphics) {
 fn test_13(graphics: &mut Graphics) {
     draw_title(graphics, "Triangles");
 
-    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_TL, 20, FlatSide::Left), DrawType::Fill(MAGENTA)));
-    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_TR, 20, FlatSide::Bottom), DrawType::Fill(MAGENTA)));
-    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_BR, 20, FlatSide::Right), DrawType::Fill(MAGENTA)));
-    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_BL, 20, FlatSide::Top), DrawType::Fill(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_TL, 20, FlatSide::Left), fill(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_TR, 20, FlatSide::Bottom), fill(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_BR, 20, FlatSide::Right), fill(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::equilateral(QUAD_BL, 20, FlatSide::Top), fill(MAGENTA)));
+}
+
+fn test_14(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Poly Rotation - Stroke");
+
+    graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
+    graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
+
+    let rect = Rect::new(CENTER - (20,20), CENTER + (20,20)).as_polygon();
+    let drawable = Drawable::from_obj(rect, stroke(MAGENTA));
+    graphics.draw(&drawable.with_rotation(degrees));
+}
+
+fn test_15(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Poly Rotation - Filled");
+
+    graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
+    graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
+
+    let rect = Rect::new(CENTER - (20,20), CENTER + (20,20)).as_polygon();
+    let drawable = Drawable::from_obj(rect, fill(RED));
+    graphics.draw(&drawable.with_rotation(degrees));
+}
+
+fn test_16(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Triangle Rotation - Stroke");
+
+    graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
+    graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
+
+    let triangle = Triangle::equilateral(CENTER, 40, FlatSide::Bottom);
+    let drawable = Drawable::from_obj(triangle, stroke(MAGENTA));
+    graphics.draw(&drawable.with_rotation(degrees));
+}
+
+fn test_17(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Triangle Rotation - Filled");
+
+    graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
+    graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
+
+    let triangle = Triangle::equilateral(CENTER, 40, FlatSide::Bottom);
+    let drawable = Drawable::from_obj(triangle, fill(RED));
+    graphics.draw(&drawable.with_rotation(degrees));
 }
