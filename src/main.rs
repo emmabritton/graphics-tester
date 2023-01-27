@@ -1,21 +1,15 @@
 use anyhow::Result;
-use buffer_graphics_lib::color::{BLACK, BLUE, CYAN, GREEN, LIGHT_GRAY, MAGENTA, RED, WHITE, YELLOW};
-use buffer_graphics_lib::drawable::{Drawable, DrawType, fill, stroke};
-use buffer_graphics_lib::Graphics;
-use buffer_graphics_lib::shapes::CreateDrawable;
-use buffer_graphics_lib::text::format::{Positioning, TextFormat};
-use buffer_graphics_lib::text::pos::{NewTextPos, TextPos};
-use buffer_graphics_lib::text::TextSize;
-use graphics_shapes::coord::Coord;
-use pixels_graphics_lib::{run, System, WindowScaling};
+use pixels_graphics_lib::buffer_graphics_lib::color::*;
+use pixels_graphics_lib::buffer_graphics_lib::drawable::{Drawable, fill, stroke};
+use pixels_graphics_lib::buffer_graphics_lib::shapes::CreateDrawable;
+use pixels_graphics_lib::buffer_graphics_lib::text::format::{Positioning, TextFormat};
+use pixels_graphics_lib::buffer_graphics_lib::text::pos::{CoordIntoTextPos, NewTextPos, TextPos};
+use pixels_graphics_lib::buffer_graphics_lib::text::TextSize;
+use pixels_graphics_lib::buffer_graphics_lib::text::wrapping::WrappingStrategy;
+use pixels_graphics_lib::graphics_shapes::coord::Coord;
+use pixels_graphics_lib::graphics_shapes::triangle::{AnglePosition, FlatSide};
+use pixels_graphics_lib::prelude::*;
 use winit::event::VirtualKeyCode;
-use buffer_graphics_lib::text::pos::CoordIntoTextPos;
-use buffer_graphics_lib::text::wrapping::WrappingStrategy;
-use graphics_shapes::circle::Circle;
-use graphics_shapes::ellipse::Ellipse;
-use graphics_shapes::polygon::Polygon;
-use graphics_shapes::rect::Rect;
-use graphics_shapes::triangle::{AnglePosition, FlatSide, Triangle};
 
 struct Animation {
     pub value: f32,
@@ -51,7 +45,7 @@ struct Example {
 
 fn main() -> Result<()> {
     let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001) });
-    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, WindowScaling::Auto, "Testing", system)?;
+    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, WindowScaling::Auto, "Testing", system, ExecutionSpeed::standard())?;
     Ok(())
 }
 
@@ -60,8 +54,8 @@ impl System for Example {
         vec![VirtualKeyCode::Left, VirtualKeyCode::Right, VirtualKeyCode::Space, VirtualKeyCode::Escape]
     }
 
-    fn update(&mut self, delta: f32) {
-        self.fast.update(delta);
+    fn update(&mut self, timing: &Timing) {
+        self.fast.update(timing.delta as f32);
     }
     fn render(&self, graphics: &mut Graphics) {
         graphics.clear(BLACK);
@@ -84,6 +78,7 @@ impl System for Example {
             15 => test_15(graphics, self.fast.value_int()),
             16 => test_16(graphics, self.fast.value_int()),
             17 => test_17(graphics, self.fast.value_int()),
+            18 => test_18(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -96,7 +91,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 17;
+            self.current_test = 18;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -178,19 +173,19 @@ fn test_2(graphics: &mut Graphics) {
 fn test_3(graphics: &mut Graphics) {
     draw_title(graphics, "Right Angle Triangles");
 
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopLeft), DrawType::Stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopRight), DrawType::Stroke(YELLOW)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomLeft), DrawType::Stroke(GREEN)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomRight), DrawType::Stroke(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopLeft), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopRight), stroke(YELLOW)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomLeft), stroke(GREEN)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomRight), stroke(MAGENTA)));
 }
 
 fn test_4(graphics: &mut Graphics) {
     draw_title(graphics, "Basic shapes");
 
-    graphics.draw(&Drawable::from_obj(Rect::new(QUAD_TL - PADDING, QUAD_TL + PADDING), DrawType::Stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Circle::new(QUAD_TR, PADDING.x as usize), DrawType::Stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Ellipse::new(QUAD_BL, PADDING.x as usize* 2, PADDING.x as usize), DrawType::Stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Triangle::new(QUAD_BR - PADDING, QUAD_BR + (PADDING.x, 0), QUAD_BR + (0,PADDING.x)), DrawType::Stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new(QUAD_TL - PADDING, QUAD_TL + PADDING), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Circle::new(QUAD_TR, PADDING.x as usize), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Ellipse::new(QUAD_BL, PADDING.x as usize* 2, PADDING.x as usize), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Triangle::new(QUAD_BR - PADDING, QUAD_BR + (PADDING.x, 0), QUAD_BR + (0,PADDING.x)), stroke(BLUE)));
 }
 
 fn test_5(graphics: &mut Graphics) {
@@ -230,7 +225,7 @@ fn test_7(graphics: &mut Graphics) {
     draw_title(graphics, "Drawable mutation");
 
     let drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), fill(BLUE));
-    let red = drawable.with_draw_type(DrawType::Stroke(RED));
+    let red = drawable.with_draw_type(stroke(RED));
     let rotated = drawable.with_rotation(45);
     let larger = drawable.with_scale(1.2);
     let smaller = drawable.with_scale(0.8);
@@ -244,7 +239,7 @@ fn test_7(graphics: &mut Graphics) {
 
 fn test_8(graphics: &mut Graphics) {
     draw_title(graphics, "Polygons");
-    let poly1=  Drawable::from_obj(Polygon::new(vec![(30,30),(40,29),(50,50),(40,60)]), DrawType::Stroke(BLUE));
+    let poly1=  Drawable::from_obj(Polygon::new(vec![(30,30),(40,29),(50,50),(40,60)]), stroke(BLUE));
     graphics.draw(&poly1);
     graphics.draw_offset((0,60), &poly1.with_draw_type(fill(YELLOW)));
     graphics.draw_offset((60,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(45));
@@ -363,4 +358,17 @@ fn test_17(graphics: &mut Graphics, degrees: isize) {
     let triangle = Triangle::equilateral(CENTER, 40, FlatSide::Bottom);
     let drawable = Drawable::from_obj(triangle, fill(RED));
     graphics.draw(&drawable.with_rotation(degrees));
+}
+
+fn test_18(graphics: &mut Graphics) {
+    draw_title(graphics, "Line Rotation");
+
+    graphics.draw_line((60,50),(60,150), YELLOW);
+    graphics.draw_line((160,50),(160,150), YELLOW);
+
+    let line1 = Line::new((60,50),(60,150)).rotate(47);
+    let line2 = Line::new((160,50),(160,150)).rotate_around(47,(160,150));
+
+    graphics.draw(&Drawable::from_obj(line1, stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(line2, stroke(BLUE)));
 }
