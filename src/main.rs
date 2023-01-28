@@ -2,14 +2,17 @@ use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::color::*;
 use pixels_graphics_lib::buffer_graphics_lib::drawable::{Drawable, fill, stroke};
 use pixels_graphics_lib::buffer_graphics_lib::shapes::CreateDrawable;
+use pixels_graphics_lib::buffer_graphics_lib::shapes::polyline::Polyline;
 use pixels_graphics_lib::buffer_graphics_lib::text::format::{Positioning, TextFormat};
+use pixels_graphics_lib::buffer_graphics_lib::text::format::Positioning::Center;
 use pixels_graphics_lib::buffer_graphics_lib::text::pos::{CoordIntoTextPos, NewTextPos, TextPos};
+use pixels_graphics_lib::buffer_graphics_lib::text::pos::TextPos::Px;
 use pixels_graphics_lib::buffer_graphics_lib::text::TextSize;
+use pixels_graphics_lib::buffer_graphics_lib::text::TextSize::Large;
 use pixels_graphics_lib::buffer_graphics_lib::text::wrapping::WrappingStrategy;
 use pixels_graphics_lib::graphics_shapes::coord::Coord;
 use pixels_graphics_lib::graphics_shapes::triangle::{AnglePosition, FlatSide};
 use pixels_graphics_lib::prelude::*;
-use winit::event::VirtualKeyCode;
 
 struct Animation {
     pub value: f32,
@@ -79,6 +82,10 @@ impl System for Example {
             16 => test_16(graphics, self.fast.value_int()),
             17 => test_17(graphics, self.fast.value_int()),
             18 => test_18(graphics),
+            19 => test_19(graphics),
+            20 => test_20(graphics),
+            21 => test_21(graphics, self.fast.value_int()),
+            22 => test_22(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -91,7 +98,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 18;
+            self.current_test = 22;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -239,7 +246,7 @@ fn test_7(graphics: &mut Graphics) {
 
 fn test_8(graphics: &mut Graphics) {
     draw_title(graphics, "Polygons");
-    let poly1=  Drawable::from_obj(Polygon::new(vec![(30,30),(40,29),(50,50),(40,60)]), stroke(BLUE));
+    let poly1=  Drawable::from_obj(Polygon::new(&[(30,30),(40,29),(50,50),(40,60)]), stroke(BLUE));
     graphics.draw(&poly1);
     graphics.draw_offset((0,60), &poly1.with_draw_type(fill(YELLOW)));
     graphics.draw_offset((60,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(45));
@@ -287,22 +294,22 @@ fn test_11(graphics: &mut Graphics) {
 fn test_12(graphics: &mut Graphics) {
     draw_title(graphics, "Off screen polygons");
 
-    graphics.draw(&Drawable::from_obj(Polygon::new(vec![TOP_LEFT - (10,10),TOP_LEFT + (10,-10), TOP_LEFT + (10,10), TOP_LEFT + (-10,10)]), fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Polygon::new(vec![BOTTOM_RIGHT - (10,10),BOTTOM_RIGHT + (10,-10), BOTTOM_RIGHT + (10,10), BOTTOM_RIGHT + (-10,10)]), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(&[TOP_LEFT - (10,10),TOP_LEFT + (10,-10), TOP_LEFT + (10,10), TOP_LEFT + (-10,10)]), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(&[BOTTOM_RIGHT - (10,10),BOTTOM_RIGHT + (10,-10), BOTTOM_RIGHT + (10,10), BOTTOM_RIGHT + (-10,10)]), fill(BLUE)));
 
-    let left_poly = Drawable::from_obj(Polygon::new(vec![(-10,50),(20,50),(20,70),(-10,70)]), fill(BLUE));
+    let left_poly = Drawable::from_obj(Polygon::new(&[(-10,50),(20,50),(20,70),(-10,70)]), fill(BLUE));
     graphics.draw(&left_poly);
     graphics.draw_offset((50,0),&left_poly);
 
-    let top_poly = Drawable::from_obj(Polygon::new(vec![(200,-10),(220,-10),(220,30),(200,30)]), fill(BLUE));
+    let top_poly = Drawable::from_obj(Polygon::new(&[(200,-10),(220,-10),(220,30),(200,30)]), fill(BLUE));
     graphics.draw(&top_poly);
     graphics.draw_offset((0,70),&top_poly);
 
-    let right_poly = Drawable::from_obj(Polygon::new(vec![(230,130),(260,130),(260,150),(230,150)]), fill(BLUE));
+    let right_poly = Drawable::from_obj(Polygon::new(&[(230,130),(260,130),(260,150),(230,150)]), fill(BLUE));
     graphics.draw(&right_poly);
     graphics.draw_offset((-50,0),&right_poly);
 
-    let bottom_poly = Drawable::from_obj(Polygon::new(vec![(100,230),(120,230),(120,260),(100,260)]), fill(BLUE));
+    let bottom_poly = Drawable::from_obj(Polygon::new(&[(100,230),(120,230),(120,260),(100,260)]), fill(BLUE));
     graphics.draw(&bottom_poly);
     graphics.draw_offset((0,-70),&bottom_poly);
 }
@@ -371,4 +378,78 @@ fn test_18(graphics: &mut Graphics) {
 
     graphics.draw(&Drawable::from_obj(line1, stroke(BLUE)));
     graphics.draw(&Drawable::from_obj(line2, stroke(BLUE)));
+}
+
+fn test_19(graphics: &mut Graphics) {
+    draw_title(graphics, "Moving shapes");
+
+    let triangle = Triangle::equilateral((40,40),10, FlatSide::Left);
+    let moved = triangle.move_to((60,40));
+    let translated = triangle.translate_by((0,20));
+
+    graphics.draw_triangle(triangle, fill(BLUE));
+    graphics.draw_triangle(moved, fill(YELLOW));
+    graphics.draw_triangle(translated, fill(RED));
+
+
+    let rect = Rect::new((140,30),(170,50));
+    let moved = rect.move_to((180,30));
+    let translated = rect.translate_by((0,30));
+
+    graphics.draw_rect(rect, fill(BLUE));
+    graphics.draw_rect(moved, fill(YELLOW));
+    graphics.draw_rect(translated, fill(RED));
+
+
+    let polygon = Polygon::new(&[(40, 120),(60,120),(55,130),(30,150)]);
+    let moved = polygon.move_to((100,120));
+    let translated = polygon.translate_by((0,30));
+
+    graphics.draw_polygon(polygon, fill(BLUE));
+    graphics.draw_polygon(moved, fill(YELLOW));
+    graphics.draw_polygon(translated, fill(RED));
+}
+
+fn test_20(graphics: &mut Graphics) {
+    draw_title(graphics, "Basic polyline");
+
+    graphics.draw(&Polyline::rounded_rect(150, 40, 220, 120, 20, BLUE).unwrap());
+    graphics.draw(&Polyline::rounded_rect(180, 70, 200, 90, 4, YELLOW).unwrap());
+}
+
+fn test_21(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Arcs");
+
+    graphics.draw_arc(QUAD_TL, 0, 90, 20, false, RED);
+
+    graphics.draw_arc(QUAD_TR, degrees,degrees+30, 40, false, BLUE);
+    graphics.draw_arc(QUAD_TR, degrees+10,degrees+40, 39, false, GREEN);
+    graphics.draw_arc(QUAD_TR, degrees+20,degrees+50, 38, false, RED);
+
+    graphics.draw_arc(QUAD_BL, 0, 300, 4, false, YELLOW);
+    graphics.draw_arc(QUAD_BL, 0, 300, 4, false, ORANGE);
+
+    graphics.draw_arc(QUAD_BR, 0, 90, 20, true, MAGENTA);
+}
+
+fn test_22(graphics: &mut Graphics) {
+    draw_title(graphics, "Colors");
+
+    let colors = &[WHITE, LIGHT_GRAY,  RED, DARK_GRAY,GREEN, BLUE, YELLOW, MAGENTA, PURPLE, ORANGE, CYAN, BROWN];
+    let names= &["WHITE", "LIGHT GRAY", "RED", "DARK GRAY", "GREEN", "BLUE", "YELLOW", "MAGENTA", "PURPLE", "ORANGE", "CYAN", "BROWN"];
+
+    let start = Coord::new(50,40);
+    let mut row = 0;
+    let mut col = 0;
+    let row_space = 120;
+    let col_space = 20;
+    for (i,color) in colors.iter().enumerate() {
+        let coord = Coord::from((row * row_space, col * col_space));
+        graphics.draw_text(&format!("{}", names[i]), TextPos::px(coord + start), (*color, Large, Center));
+        row += 1;
+        if row > 1 {
+            row = 0;
+            col += 1;
+        }
+    }
 }
