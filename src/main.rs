@@ -1,6 +1,8 @@
 use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::color::*;
 use pixels_graphics_lib::buffer_graphics_lib::drawable::{Drawable, fill, stroke};
+use pixels_graphics_lib::buffer_graphics_lib::prelude::InsertShape;
+use pixels_graphics_lib::buffer_graphics_lib::shapes::collection::ShapeCollection;
 use pixels_graphics_lib::buffer_graphics_lib::shapes::CreateDrawable;
 use pixels_graphics_lib::buffer_graphics_lib::shapes::polyline::Polyline;
 use pixels_graphics_lib::buffer_graphics_lib::text::format::{Positioning, TextFormat};
@@ -43,11 +45,12 @@ impl Animation {
 struct Example {
     current_test: usize,
     fast: Animation,
+    slow: Animation,
     should_quit: bool
 }
 
 fn main() -> Result<()> {
-    let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001) });
+    let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001),slow: Animation::new(0.0, 0.1, 0.0, 0.001) });
     run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, WindowScaling::Auto, "Testing", system, ExecutionSpeed::standard())?;
     Ok(())
 }
@@ -59,7 +62,9 @@ impl System for Example {
 
     fn update(&mut self, timing: &Timing) {
         self.fast.update(timing.delta as f32);
+        self.slow.update(timing.delta as f32);
     }
+
     fn render(&self, graphics: &mut Graphics) {
         graphics.clear(BLACK);
         match self.current_test {
@@ -86,6 +91,8 @@ impl System for Example {
             20 => test_20(graphics),
             21 => test_21(graphics, self.fast.value_int()),
             22 => test_22(graphics),
+            23 => test_23(graphics),
+            24 => test_24(graphics, self.slow.value_int()),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -98,7 +105,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 22;
+            self.current_test = 24;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -452,4 +459,43 @@ fn test_22(graphics: &mut Graphics) {
             col += 1;
         }
     }
+}
+
+fn test_23(graphics: &mut Graphics) {
+    draw_title(graphics, "Collections");
+
+    let mut collection = ShapeCollection::new();
+    collection.insert_above(Rect::new((150,150),(170,190)).as_polygon(), stroke(BLUE));
+    collection.insert_above(Rect::new((190,150),(210,190)).as_polygon(), fill(BLUE));
+
+    graphics.draw(&collection);
+
+    graphics.draw(&collection.with_move((20,20)).with_draw_type(fill(YELLOW)));
+
+    graphics.draw(&collection.with_translation((-80,00)).with_draw_type(fill(PURPLE)));
+
+    graphics.draw(&collection.with_move((190,20)).with_draw_type(fill(MAGENTA)).with_scale(0.6));
+}
+
+fn test_24(graphics: &mut Graphics, degrees: isize) {
+    draw_title(graphics, "Rotating collections");
+
+    let mut collection = ShapeCollection::new();
+    collection.insert_above(Rect::new((100,0),(120,30)).as_polygon(), stroke(BLUE));
+    collection.insert_above(Rect::new((130,0),(150,30)).as_polygon(), fill(BLUE));
+
+    graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
+
+    let mut collection = ShapeCollection::new();
+    collection.insert_above(Rect::new((30,30),(50,60)).as_polygon(), stroke(YELLOW));
+    collection.insert_above(Rect::new((60,60),(80,80)).as_polygon(), fill(YELLOW));
+
+    graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
+
+    let mut collection = ShapeCollection::new();
+    collection.insert_above(Rect::new((150,150),(170,170)).as_polygon(), stroke(MAGENTA));
+    collection.insert_above(Rect::new((170,170),(190,190)).as_polygon(), fill(MAGENTA));
+
+    graphics.draw(&collection.with_rotation(degrees));
+
 }
