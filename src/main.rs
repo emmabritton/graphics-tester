@@ -10,7 +10,7 @@ use pixels_graphics_lib::buffer_graphics_lib::text::format::Positioning::Center;
 use pixels_graphics_lib::buffer_graphics_lib::text::pos::{CoordIntoTextPos, NewTextPos, TextPos};
 use pixels_graphics_lib::buffer_graphics_lib::text::pos::TextPos::Px;
 use pixels_graphics_lib::buffer_graphics_lib::text::TextSize;
-use pixels_graphics_lib::buffer_graphics_lib::text::TextSize::Large;
+use pixels_graphics_lib::buffer_graphics_lib::text::TextSize::{Large, Normal};
 use pixels_graphics_lib::buffer_graphics_lib::text::wrapping::WrappingStrategy;
 use pixels_graphics_lib::graphics_shapes::coord::Coord;
 use pixels_graphics_lib::graphics_shapes::triangle::{AnglePosition, FlatSide};
@@ -51,7 +51,7 @@ struct Example {
 
 fn main() -> Result<()> {
     let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001),slow: Animation::new(0.0, 0.1, 0.0, 0.001) });
-    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, WindowScaling::Auto, "Testing", system, ExecutionSpeed::standard())?;
+    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize,  "Testing", system, Options::default())?;
     Ok(())
 }
 
@@ -93,6 +93,7 @@ impl System for Example {
             22 => test_22(graphics),
             23 => test_23(graphics),
             24 => test_24(graphics, self.slow.value_int()),
+            25 => test_25(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -105,7 +106,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 24;
+            self.current_test = 25;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -465,8 +466,8 @@ fn test_23(graphics: &mut Graphics) {
     draw_title(graphics, "Collections");
 
     let mut collection = ShapeCollection::new();
-    collection.insert_above(Rect::new((150,150),(170,190)).as_polygon(), stroke(BLUE));
-    collection.insert_above(Rect::new((190,150),(210,190)).as_polygon(), fill(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((150,150),(170,190)).as_polygon(), stroke(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((190,150),(210,190)).as_polygon(), fill(BLUE));
 
     graphics.draw(&collection);
 
@@ -481,21 +482,44 @@ fn test_24(graphics: &mut Graphics, degrees: isize) {
     draw_title(graphics, "Rotating collections");
 
     let mut collection = ShapeCollection::new();
-    collection.insert_above(Rect::new((100,0),(120,30)).as_polygon(), stroke(BLUE));
-    collection.insert_above(Rect::new((130,0),(150,30)).as_polygon(), fill(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((100,0),(120,30)).as_polygon(), stroke(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((130,0),(150,30)).as_polygon(), fill(BLUE));
 
     graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
 
     let mut collection = ShapeCollection::new();
-    collection.insert_above(Rect::new((30,30),(50,60)).as_polygon(), stroke(YELLOW));
-    collection.insert_above(Rect::new((60,60),(80,80)).as_polygon(), fill(YELLOW));
+    InsertShape::insert_above(&mut collection, Rect::new((30,30),(50,60)).as_polygon(), stroke(YELLOW));
+    InsertShape::insert_above(&mut collection, Rect::new((60,60),(80,80)).as_polygon(), fill(YELLOW));
 
     graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
 
     let mut collection = ShapeCollection::new();
-    collection.insert_above(Rect::new((150,150),(170,170)).as_polygon(), stroke(MAGENTA));
-    collection.insert_above(Rect::new((170,170),(190,190)).as_polygon(), fill(MAGENTA));
+    InsertShape::insert_above(&mut collection, Rect::new((150,150),(170,170)).as_polygon(), stroke(MAGENTA));
+    InsertShape::insert_above(&mut collection, Rect::new((170,170),(190,190)).as_polygon(), fill(MAGENTA));
 
     graphics.draw(&collection.with_rotation(degrees));
+
+}
+
+fn test_25(graphics: &mut Graphics) {
+    draw_title(graphics, "Text bounds");
+
+    let short = "one line";
+    let long = "multiple lines of text";
+
+    let bounds_short_normal = Normal.measure(short, WrappingStrategy::None);
+    let bounds_short_large = Large.measure(short, WrappingStrategy::None);
+    let bounds_multi_normal = Normal.measure(long, WrappingStrategy::AtCol(6));
+    let bounds_multi_large = Large.measure(long, WrappingStrategy::AtCol(6));
+
+    graphics.draw_rect(Rect::new((0,0), bounds_short_normal).move_center_to(QUAD_TL), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0,0), bounds_short_large).move_center_to(QUAD_TR), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0,0), bounds_multi_normal).move_center_to(QUAD_BL), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0,0), bounds_multi_large).move_center_to(QUAD_BR), stroke(BLUE));
+
+    graphics.draw_text(short, TextPos::px(QUAD_TL), (WHITE, Normal, WrappingStrategy::None, Center));
+    graphics.draw_text(short, TextPos::px(QUAD_TR), (WHITE, Large, WrappingStrategy::None, Center));
+    graphics.draw_text(long, TextPos::px(QUAD_BL), (WHITE, Normal, WrappingStrategy::AtCol(6), Center));
+    graphics.draw_text(long, TextPos::px(QUAD_BR), (WHITE, Large, WrappingStrategy::AtCol(6), Center));
 
 }
