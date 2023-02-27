@@ -8,7 +8,6 @@ use pixels_graphics_lib::buffer_graphics_lib::shapes::polyline::Polyline;
 use pixels_graphics_lib::buffer_graphics_lib::text::format::{Positioning, TextFormat};
 use pixels_graphics_lib::buffer_graphics_lib::text::format::Positioning::Center;
 use pixels_graphics_lib::buffer_graphics_lib::text::pos::{CoordIntoTextPos, NewTextPos, TextPos};
-use pixels_graphics_lib::buffer_graphics_lib::text::pos::TextPos::Px;
 use pixels_graphics_lib::buffer_graphics_lib::text::TextSize;
 use pixels_graphics_lib::buffer_graphics_lib::text::TextSize::{Large, Normal};
 use pixels_graphics_lib::buffer_graphics_lib::text::wrapping::WrappingStrategy;
@@ -46,11 +45,17 @@ struct Example {
     current_test: usize,
     fast: Animation,
     slow: Animation,
-    should_quit: bool
+    should_quit: bool,
+    ici_static: IndexedImage,
+    ici_slow: AnimatedIndexedImage,
+    ici_fast: AnimatedIndexedImage
 }
 
 fn main() -> Result<()> {
-    let system = Box::new(Example { should_quit:false,current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001),slow: Animation::new(0.0, 0.1, 0.0, 0.001) });
+    let (ici_static,_) = IndexedImage::from_file_contents(include_bytes!("../assets/test.ici")).unwrap();
+    let (ici_slow,_) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/slow.ica")).unwrap();
+    let (ici_fast,_) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/fast.ica")).unwrap();
+    let system = Box::new(Example { should_quit:false, ici_static, ici_slow, current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001),slow: Animation::new(0.0, 0.1, 0.0, 0.001), ici_fast });
     run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize,  "Testing", system, Options::default())?;
     Ok(())
 }
@@ -63,6 +68,8 @@ impl System for Example {
     fn update(&mut self, timing: &Timing) {
         self.fast.update(timing.delta as f32);
         self.slow.update(timing.delta as f32);
+        self.ici_slow.update(timing.fixed_time_step);
+        self.ici_fast.update(timing.fixed_time_step);
     }
 
     fn render(&self, graphics: &mut Graphics) {
@@ -94,6 +101,7 @@ impl System for Example {
             23 => test_23(graphics),
             24 => test_24(graphics, self.slow.value_int()),
             25 => test_25(graphics),
+            26 => test_26(graphics, &self.ici_static, &self.ici_slow, &self.ici_fast),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -106,7 +114,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 25;
+            self.current_test = 26;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -522,4 +530,12 @@ fn test_25(graphics: &mut Graphics) {
     graphics.draw_text(long, TextPos::px(QUAD_BL), (WHITE, Normal, WrappingStrategy::AtCol(6), Center));
     graphics.draw_text(long, TextPos::px(QUAD_BR), (WHITE, Large, WrappingStrategy::AtCol(6), Center));
 
+}
+
+fn test_26(graphics: &mut Graphics, image: &IndexedImage, slow: &AnimatedIndexedImage, fast: &AnimatedIndexedImage) {
+    draw_title(graphics, "Indexed Images");
+
+    graphics.draw_indexed_image((30,30),image);
+    graphics.draw_animated_image((130,30),slow);
+    graphics.draw_animated_image((130,50),fast);
 }
