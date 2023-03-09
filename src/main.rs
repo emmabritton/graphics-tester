@@ -102,6 +102,9 @@ impl System for Example {
             24 => test_24(graphics, self.slow.value_int()),
             25 => test_25(graphics),
             26 => test_26(graphics, &self.ici_static, &self.ici_slow, &self.ici_fast),
+            27 => test_27(graphics),
+            28 => test_28(graphics),
+            29 => test_29(graphics, &self.ici_static),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -114,7 +117,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 26;
+            self.current_test = 29;
         } else if keys.contains(&VirtualKeyCode::Escape) {
             self.should_quit = true;
         }
@@ -538,4 +541,66 @@ fn test_26(graphics: &mut Graphics, image: &IndexedImage, slow: &AnimatedIndexed
     graphics.draw_indexed_image((30,30),image);
     graphics.draw_animated_image((130,30),slow);
     graphics.draw_animated_image((130,50),fast);
+}
+
+fn test_27(graphics: &mut Graphics) {
+    draw_title(graphics, "Color brightness");
+
+    let color = Color::rgb(124, 67, 43);
+
+    let brighter = color.lighten();
+    let brighter2 = brighter.lighten();
+    let brighter3 = brighter2.lighten();
+    let darker = color.darken();
+    let darker2 = darker.darken();
+    let darker3 = darker2.darken();
+
+    let rect = Drawable::from_obj(Rect::new((0,0), (30,30)), DrawType::Fill(WHITE));
+    rect.with_move((10,100)).with_draw_type(fill(darker3)).render(graphics);
+    rect.with_move((40,100)).with_draw_type(fill(darker2)).render(graphics);
+    rect.with_move((70,100)).with_draw_type(fill(darker)).render(graphics);
+    rect.with_move((100,100)).with_draw_type(fill(color)).render(graphics);
+    rect.with_move((130,100)).with_draw_type(fill(brighter)).render(graphics);
+    rect.with_move((160,100)).with_draw_type(fill(brighter2)).render(graphics);
+    rect.with_move((190,100)).with_draw_type(fill(brighter3)).render(graphics);
+
+}
+
+fn test_28(graphics: &mut Graphics) {
+    draw_title(graphics, "Color saturation");
+
+    let color = Color::rgb(124, 197, 93);
+
+    let brighter = color.saturate();
+    let brighter2 = brighter.saturate();
+    let brighter3 = brighter2.saturate();
+    let darker = color.desaturate();
+    let darker2 = darker.desaturate();
+    let darker3 = darker2.desaturate();
+
+    let rect = Drawable::from_obj(Rect::new((0,0), (30,30)), DrawType::Fill(WHITE));
+    rect.with_move((10,100)).with_draw_type(fill(darker3)).render(graphics);
+    rect.with_move((40,100)).with_draw_type(fill(darker2)).render(graphics);
+    rect.with_move((70,100)).with_draw_type(fill(darker)).render(graphics);
+    rect.with_move((100,100)).with_draw_type(fill(color)).render(graphics);
+    rect.with_move((130,100)).with_draw_type(fill(brighter)).render(graphics);
+    rect.with_move((160,100)).with_draw_type(fill(brighter2)).render(graphics);
+    rect.with_move((190,100)).with_draw_type(fill(brighter3)).render(graphics);
+}
+
+
+fn test_29(graphics: &mut Graphics, image: &IndexedImage) {
+    draw_title(graphics, "Changing images");
+
+    let mut orig = image.clone();
+    let mut palette = orig.get_palette().to_vec();
+    palette.push(IciColor::new(125,16,150, 255));
+    orig.set_palette(&palette).unwrap();
+    orig.set_pixel(13, (palette.len() - 1) as u8).unwrap();
+    let darker = orig.with_brightness(0.6);
+    let sated = orig.with_saturate(-0.2);
+
+    graphics.draw_indexed_image((100,100),&orig);
+    graphics.draw_indexed_image((50,100),&darker);
+    graphics.draw_indexed_image((150,100),&sated);
 }
