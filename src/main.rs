@@ -109,7 +109,7 @@ impl System for Example {
         }
     }
 
-    fn on_key_pressed(&mut self, keys: Vec<VirtualKeyCode>) {
+    fn on_key_up(&mut self, keys: Vec<VirtualKeyCode>) {
         if keys.contains(&VirtualKeyCode::Right) {
             self.current_test += 1;
         } else if keys.contains(&VirtualKeyCode::Left) {

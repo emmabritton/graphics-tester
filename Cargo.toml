@@ -9,5 +9,5 @@ description = "Graphics tester"
 publish = false
 
 [dependencies]
-pixels-graphics-lib = "0.9.1"
+pixels-graphics-lib = "0.10.0"
 anyhow = "1.0.66"
