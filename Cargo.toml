@@ -9,6 +9,5 @@ description = "Graphics tester"
 publish = false
 
 [dependencies]
-pixels-graphics-lib = "0.12.0"
-#pixels-graphics-lib = {path="../rust-graphics-lib"}
+pixels-graphics-lib = "0.13.1"
 anyhow = "1.0.75"

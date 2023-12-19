@@ -1,3 +1,4 @@
+use std::slice::from_raw_parts;
 use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
 use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
@@ -50,10 +51,10 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-const KEYS: [VirtualKeyCode; 4] =[VirtualKeyCode::Left, VirtualKeyCode::Right, VirtualKeyCode::Space, VirtualKeyCode::Escape];
+const KEYS: [KeyCode; 4] =[KeyCode::ArrowLeft, KeyCode::ArrowRight, KeyCode::Space, KeyCode::Escape];
 
 impl System for Example {
-    fn action_keys(&mut self) -> &[VirtualKeyCode] {
+    fn keys_used(&self) -> &[KeyCode] {
         &KEYS
     }
 
@@ -102,20 +103,21 @@ impl System for Example {
             32 => test_32(graphics, self.slow.value_int()),
             33 => test_33(graphics),
             34 => test_34(graphics),
+            35 => test_35(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
 
-    fn on_key_up(&mut self, keys: Vec<VirtualKeyCode>) {
-        if keys.contains(&VirtualKeyCode::Right) {
+    fn on_key_up(&mut self, keys: Vec<KeyCode>) {
+        if keys.contains(&KeyCode::ArrowRight) {
             self.current_test += 1;
-        } else if keys.contains(&VirtualKeyCode::Left) {
+        } else if keys.contains(&KeyCode::ArrowLeft) {
             if self.current_test > 0 {
                 self.current_test -= 1;
             }
-        } else if keys.contains(&VirtualKeyCode::Space) {
-            self.current_test = 34;
-        } else if keys.contains(&VirtualKeyCode::Escape) {
+        } else if keys.contains(&KeyCode::Space) {
+            self.current_test = 35;
+        } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         }
     }
@@ -452,10 +454,10 @@ fn test_21(graphics: &mut Graphics, degrees: isize) {
 fn test_22(graphics: &mut Graphics) {
     draw_title(graphics, "22) Colors");
 
-    let colors = &[WHITE, LIGHT_GRAY,  RED, DARK_GRAY,GREEN, BLUE, YELLOW, MAGENTA, PURPLE, ORANGE, CYAN, BROWN];
-    let names= &["WHITE", "LIGHT GRAY", "RED", "DARK GRAY", "GREEN", "BLUE", "YELLOW", "MAGENTA", "PURPLE", "ORANGE", "CYAN", "BROWN"];
+    let colors = &[WHITE, LIGHT_GRAY,  RED, DARK_GRAY,GREEN, BLUE, YELLOW, MAGENTA, PURPLE, ORANGE, CYAN, BROWN, DARKER_GRAY, MID_GRAY, LIGHTER_GRAY, GB_0, GB_1, GB_2, GB_3, OFF_BLACK, OFF_WHITE];
+    let names= &["WHITE", "LIGHT GRAY", "RED", "DARK GRAY", "GREEN", "BLUE", "YELLOW", "MAGENTA", "PURPLE", "ORANGE", "CYAN", "BROWN", "DARKER GRAY", "MID GRAY", "LIGHTER GRAY", "GB 0", "GB 1", "GB 2", "GB 3", "OFF BLACK", "OFF WHITE"];
 
-    let start = Coord::new(50,40);
+    let start = Coord::new(70,30);
     let mut row = 0;
     let mut col = 0;
     let row_space = 120;
@@ -691,10 +693,23 @@ fn test_33(graphics: &mut Graphics) {
     graphics.clip_mut().add_rect(Rect::new(TOP_LEFT, BOTTOM_RIGHT));
     graphics.clip_mut().remove_rect(Rect::new((70,70),(120,120)));
     graphics.clip_mut().remove_circle(Circle::new((200,100), 20));
-    graphics.clear_aware(YELLOW);
+
+    graphics.clear_aware(DARK_GRAY);
+
+    let mut image = Image::new_blank(20, 20);
+    image.set_pixel(0,0, CYAN);
+    image.set_pixel(19,0, MAGENTA);
+    image.set_pixel(0,19, GREEN);
+    image.set_pixel(19,19, PURPLE);
+
+    graphics.draw_image((60,60), &image);
+
+    graphics.draw_image_unchecked((110,110), &image);
+
     graphics.clip_mut().set_all_valid();
 
-    graphics.draw_rect(Rect::new((0,0), (SCREEN_WIDTH, 16)), fill(BLACK));
+    graphics.draw_rect(Rect::new((0,0), (SCREEN_WIDTH, 12)), fill(BLACK));
+
     draw_title(graphics, "33) Clipping (complex)");
 }
 
@@ -720,4 +735,54 @@ fn test_34(graphics: &mut Graphics) {
     graphics.draw(&Drawable::from_obj(poly2, stroke(BLUE)));
     graphics.draw(&Drawable::from_obj(poly3, stroke(BLUE)));
     graphics.draw(&Drawable::from_obj(poly4, stroke(BLUE)));
+}
+
+fn test_35(graphics: &mut Graphics) {
+    draw_title(graphics, "35) Image Rotation/Flip");
+
+    let mut image = Image::new_blank(12, 24);
+    image.set_pixel(0,0,BLUE);
+    image.set_pixel(1,1,BLUE);
+    image.set_pixel(2,2,BLUE);
+    image.set_pixel(3,3,BLUE);
+    image.set_pixel(11,22,RED);
+    image.set_pixel(11,23,RED);
+    image.set_pixel(10,23,RED);
+
+    graphics.draw_image_unchecked((100,50), &image);
+    graphics.draw_image_unchecked((130,50), &image.rotate_cw());
+    graphics.draw_image_unchecked((170,50), &image.rotate_cw().rotate_cw());
+    graphics.draw_image_unchecked((70,50), &image.rotate_ccw());
+    graphics.draw_image_unchecked((40,50), &image.rotate_ccw().rotate_ccw());
+
+    let mut flipped_v = image.clone();
+    flipped_v.flip_vertical();
+    graphics.draw_image_unchecked((40,100), &flipped_v);
+
+    let mut flipped_h = image.clone();
+    flipped_h.flip_horizontal();
+    graphics.draw_image_unchecked((70,100), &flipped_h);
+
+    let mut image = Image::new_blank(24, 24);
+    image.set_pixel(0,0,BLUE);
+    image.set_pixel(1,1,BLUE);
+    image.set_pixel(2,2,BLUE);
+    image.set_pixel(3,3,BLUE);
+    image.set_pixel(23,23,RED);
+    image.set_pixel(22,23,RED);
+    image.set_pixel(23,22,RED);
+
+    graphics.draw_image_unchecked((100,180), &image);
+    graphics.draw_image_unchecked((130,180), &image.rotate_cw());
+    graphics.draw_image_unchecked((170,180), &image.rotate_cw().rotate_cw());
+    graphics.draw_image_unchecked((70,180), &image.rotate_ccw());
+    graphics.draw_image_unchecked((40,180), &image.rotate_ccw().rotate_ccw());
+
+    let mut flipped_v = image.clone();
+    flipped_v.flip_vertical();
+    graphics.draw_image_unchecked((40,220), &flipped_v);
+
+    let mut flipped_h = image.clone();
+    flipped_h.flip_horizontal();
+    graphics.draw_image_unchecked((70,220), &flipped_h);
 }
