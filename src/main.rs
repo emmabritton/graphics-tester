@@ -1,7 +1,9 @@
 use std::slice::from_raw_parts;
+use std::time::Instant;
 use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
 use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
+use pixels_graphics_lib::buffer_graphics_lib::{CustomLetter, text};
 use pixels_graphics_lib::graphics_shapes::coord;
 use pixels_graphics_lib::graphics_shapes::triangle::{AnglePosition, FlatSide};
 use pixels_graphics_lib::prelude::*;
@@ -104,6 +106,9 @@ impl System for Example {
             33 => test_33(graphics),
             34 => test_34(graphics),
             35 => test_35(graphics),
+            36 => test_36(graphics),
+            37 => test_37(graphics),
+            38 => test_38(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -116,7 +121,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 35;
+            self.current_test = 38;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         }
@@ -225,7 +230,7 @@ fn test_5(graphics: &mut Graphics) {
     graphics.draw_text("Symbols:", TextPos::cr((1,7)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
     graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1,8)), TextFormat::from((WHITE, TextSize::Normal)));
     graphics.draw_text("Custom:", TextPos::cr((1,9)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("…¤£¥¢", TextPos::cr((1,10)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,10)), TextFormat::from((WHITE, TextSize::Normal)));
 
     graphics.draw_text("Size: SMALL",TextPos::cr((1,17)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
     graphics.draw_text("Letters:", TextPos::cr((1,18)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
@@ -235,7 +240,7 @@ fn test_5(graphics: &mut Graphics) {
     graphics.draw_text("Symbols:", TextPos::cr((1,22)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
     graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1,23)), TextFormat::from((WHITE, TextSize::Small)));
     graphics.draw_text("Custom:", TextPos::cr((1,24)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("…¤£¥¢", TextPos::cr((1,25)), TextFormat::from((WHITE, TextSize::Small)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,25)), TextFormat::from((WHITE, TextSize::Small)));
 }
 
 fn test_6(graphics: &mut Graphics) {
@@ -785,4 +790,41 @@ fn test_35(graphics: &mut Graphics) {
     let mut flipped_h = image.clone();
     flipped_h.flip_horizontal();
     graphics.draw_image_unchecked((70,220), &flipped_h);
+}
+
+
+fn test_36(graphics: &mut Graphics) {
+    draw_title(graphics, "36) Large Text");
+
+    graphics.draw_text("Size: LARGE",TextPos::cr((1,2)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("Letters:", TextPos::cr((1,3)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("ABCDEFGHIJKL", TextPos::cr((1,4)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("MNOPQRSTVWXYZ", TextPos::cr((1,5)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Numbers:", TextPos::cr((1,6)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("0123456789", TextPos::cr((1,7)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Symbols:", TextPos::cr((1,8)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("!@$%^&*(),./;'\\", TextPos::cr((1,9)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("[]<>?:\"{}_+`~#", TextPos::cr((1,10)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Custom:", TextPos::cr((1,11)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,12)), TextFormat::from((WHITE, TextSize::Large)));
+}
+
+fn test_37(graphics: &mut Graphics) {
+    draw_title(graphics, "37) Custom Font");
+
+    graphics.custom_font.insert(chr_to_code('b'), CustomLetter { small: [true; small::LETTER_PX_COUNT],..CustomLetter::default()});
+
+    graphics.draw_letter((20,20), 'b', TextSize::Small, WHITE);
+
+    graphics.custom_font.clear();
+
+}
+
+fn test_38(graphics: &mut Graphics) {
+    draw_title(graphics, "38) Transparency");
+
+    graphics.draw_rect(Rect::new((60,60), (200,200)), fill(WHITE));
+    graphics.draw_rect(Rect::new((30,30), (80,80)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
+    graphics.draw_rect(Rect::new((100,30), (160,120)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
+    graphics.draw_rect(Rect::new((100,50), (160,140)), fill(Color::new(0.2, 0.5, 0.6, 0.5)));
 }
