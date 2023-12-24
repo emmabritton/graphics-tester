@@ -1,27 +1,19 @@
-use std::slice::from_raw_parts;
-use std::time::Instant;
-use anyhow::Result;
-use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
-use pixels_graphics_lib::buffer_graphics_lib::prelude::*;
-use pixels_graphics_lib::buffer_graphics_lib::{CustomLetter, text};
-use pixels_graphics_lib::graphics_shapes::coord;
-use pixels_graphics_lib::graphics_shapes::triangle::{AnglePosition, FlatSide};
 use pixels_graphics_lib::prelude::*;
+use anyhow::Result;
+use pixels_graphics_lib::buffer_graphics_lib::CustomLetter;
 
 struct Animation {
     pub value: f32,
     pub value_change: f32,
     pub next_update: f32,
-    pub update_rate: f32
+    pub update_rate: f32,
 }
 
 impl Animation {
-    
-    
     fn value_int(&self) -> isize {
         self.value as isize
     }
-    
+
     fn update(&mut self, delta: f32) {
         self.next_update -= delta;
         if self.next_update <= 0.0 {
@@ -41,19 +33,19 @@ struct Example {
     should_quit: bool,
     ici_static: IndexedImage,
     ici_slow: AnimatedIndexedImage,
-    ici_fast: AnimatedIndexedImage
+    ici_fast: AnimatedIndexedImage,
 }
 
 fn main() -> Result<()> {
-    let (ici_static,_) = IndexedImage::from_file_contents(include_bytes!("../assets/test.ici")).unwrap();
-    let (ici_slow,_) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/slow.ica")).unwrap();
-    let (ici_fast,_) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/fast.ica")).unwrap();
-    let system = Box::new(Example { should_quit:false, ici_static, ici_slow, current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001),slow: Animation::new(0.0, 0.1, 0.0, 0.001), ici_fast });
-    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize,  "Testing", system, Options::default())?;
+    let (ici_static, _) = IndexedImage::from_file_contents(include_bytes!("../assets/test.ici")).unwrap();
+    let (ici_slow, _) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/slow.ica")).unwrap();
+    let (ici_fast, _) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/fast.ica")).unwrap();
+    let system = Box::new(Example { should_quit: false, ici_static, ici_slow, current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001), slow: Animation::new(0.0, 0.1, 0.0, 0.001), ici_fast });
+    run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, "Testing", system, Options::default())?;
     Ok(())
 }
 
-const KEYS: [KeyCode; 4] =[KeyCode::ArrowLeft, KeyCode::ArrowRight, KeyCode::Space, KeyCode::Escape];
+const KEYS: [KeyCode; 4] = [KeyCode::ArrowLeft, KeyCode::ArrowRight, KeyCode::Space, KeyCode::Escape];
 
 impl System for Example {
     fn keys_used(&self) -> &[KeyCode] {
@@ -137,15 +129,15 @@ const SCREEN_HEIGHT: isize = 250;
 const HALF_WIDTH: isize = SCREEN_WIDTH / 2;
 const HALF_HEIGHT: isize = SCREEN_HEIGHT / 2;
 const TOP_LEFT: Coord = Coord::new(0, 0);
-const TOP_RIGHT: Coord = Coord::new(SCREEN_WIDTH , 0);
-const BOTTOM_LEFT: Coord = Coord::new(0, SCREEN_HEIGHT );
-const BOTTOM_RIGHT: Coord = Coord::new(SCREEN_WIDTH , SCREEN_HEIGHT );
-const CENTER: Coord = Coord::new(SCREEN_WIDTH  / 2, SCREEN_HEIGHT  / 2);
+const TOP_RIGHT: Coord = Coord::new(SCREEN_WIDTH, 0);
+const BOTTOM_LEFT: Coord = Coord::new(0, SCREEN_HEIGHT);
+const BOTTOM_RIGHT: Coord = Coord::new(SCREEN_WIDTH, SCREEN_HEIGHT);
+const CENTER: Coord = Coord::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 const PADDING: Coord = Coord::new(8, 8);
 const QUAD_TL: Coord = Coord::new(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4);
 const QUAD_TR: Coord = Coord::new(SCREEN_WIDTH / 4 * 3, SCREEN_HEIGHT / 4);
-const QUAD_BL: Coord = Coord::new(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 *3);
-const QUAD_BR: Coord = Coord::new(SCREEN_WIDTH / 4 *3, SCREEN_HEIGHT / 4 *3);
+const QUAD_BL: Coord = Coord::new(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 4 * 3);
+const QUAD_BR: Coord = Coord::new(SCREEN_WIDTH / 4 * 3, SCREEN_HEIGHT / 4 * 3);
 
 fn draw_title(graphics: &mut Graphics, text: &str) {
     graphics.draw_text(text, TextPos::px((HALF_WIDTH, 2)), TextFormat::from((WHITE, TextSize::Normal, Positioning::CenterTop)));
@@ -161,29 +153,28 @@ fn draw_point<P: Into<Coord>>(graphics: &mut Graphics, pos: P) {
 fn test_0(graphics: &mut Graphics) {
     draw_title(graphics, "0) Text Positioning");
 
-    graphics.draw_text("Center Bottom", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::CenterBottom) ));
-    graphics.draw_text("Center Top", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::CenterTop) ));
-    graphics.draw_text("Left Center", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftCenter) ));
-    graphics.draw_text("Right Center", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightCenter) ));
+    graphics.draw_text("Center Bottom", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::CenterBottom)));
+    graphics.draw_text("Center Top", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::CenterTop)));
+    graphics.draw_text("Left Center", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftCenter)));
+    graphics.draw_text("Right Center", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightCenter)));
     draw_point(graphics, QUAD_TL);
 
-    graphics.draw_text("Left Top", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftTop) ));
-    graphics.draw_text("Left Bottom", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftBottom) ));
-    graphics.draw_text("Right Top", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightTop) ));
-    graphics.draw_text("Right Bottom", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightBottom) ));
+    graphics.draw_text("Left Top", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftTop)));
+    graphics.draw_text("Left Bottom", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::LeftBottom)));
+    graphics.draw_text("Right Top", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightTop)));
+    graphics.draw_text("Right Bottom", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::RightBottom)));
     draw_point(graphics, QUAD_TR);
 
-    graphics.draw_text("Center", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::Center) ));
+    graphics.draw_text("Center", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, Positioning::Center)));
     draw_point(graphics, QUAD_BL);
-
 }
 
 fn test_1(graphics: &mut Graphics) {
     draw_title(graphics, "1) Para Sizing and Positioning (1/2)");
 
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::AtCol(8), Positioning::Center) ));
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::Cutoff(10), Positioning::Center) ));
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::SpaceBeforeCol(12), Positioning::Center) ));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::AtCol(8), Positioning::Center)));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::Cutoff(10), Positioning::Center)));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::SpaceBeforeCol(12), Positioning::Center)));
     draw_point(graphics, QUAD_TL);
     draw_point(graphics, QUAD_TR);
     draw_point(graphics, QUAD_BL);
@@ -192,9 +183,9 @@ fn test_1(graphics: &mut Graphics) {
 fn test_2(graphics: &mut Graphics) {
     draw_title(graphics, "2) Para Sizing and Positioning (2/2)");
 
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::AtCol(8), Positioning::LeftTop) ));
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::Cutoff(10), Positioning::RightCenter) ));
-    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::SpaceBeforeCol(12), Positioning::CenterBottom) ));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::AtCol(8), Positioning::LeftTop)));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_TR.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::Cutoff(10), Positioning::RightCenter)));
+    graphics.draw_text("Lorem ipsum\nsample text\nfor sizing\nand positioning", QUAD_BL.textpos(), TextFormat::from((WHITE, TextSize::Small, WrappingStrategy::SpaceBeforeCol(12), Positioning::CenterBottom)));
     draw_point(graphics, QUAD_TL);
     draw_point(graphics, QUAD_TR);
     draw_point(graphics, QUAD_BL);
@@ -204,10 +195,10 @@ fn test_2(graphics: &mut Graphics) {
 fn test_3(graphics: &mut Graphics) {
     draw_title(graphics, "3) Right Angle Triangles");
 
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopLeft), stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::TopRight), stroke(YELLOW)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomLeft), stroke(GREEN)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,100,AnglePosition::BottomRight), stroke(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::TopLeft), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::TopRight), stroke(YELLOW)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::BottomLeft), stroke(GREEN)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::BottomRight), stroke(MAGENTA)));
 }
 
 fn test_4(graphics: &mut Graphics) {
@@ -216,37 +207,37 @@ fn test_4(graphics: &mut Graphics) {
     graphics.draw(&Drawable::from_obj(Rect::new(QUAD_TL - PADDING, QUAD_TL + PADDING), stroke(BLUE)));
     graphics.draw(&Drawable::from_obj(Circle::new(QUAD_TR, PADDING.x as usize), stroke(BLUE)));
     // graphics.draw(&Drawable::from_obj(Ellipse::new(QUAD_BL, PADDING.x as usize* 2, PADDING.x as usize), stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Triangle::new(QUAD_BR - PADDING, QUAD_BR + (PADDING.x, 0), QUAD_BR + (0,PADDING.x)), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Triangle::new(QUAD_BR - PADDING, QUAD_BR + (PADDING.x, 0), QUAD_BR + (0, PADDING.x)), stroke(BLUE)));
 }
 
 fn test_5(graphics: &mut Graphics) {
     draw_title(graphics, "5) Text Symbols");
 
-    graphics.draw_text("Size: NORMAL",TextPos::cr((1,2)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("Letters:", TextPos::cr((1,3)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("ABCDEFGHIJKLMNOPQRSTVWXYZ", TextPos::cr((1,4)), TextFormat::from((WHITE, TextSize::Normal)));
-    graphics.draw_text("Numbers:", TextPos::cr((1,5)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("0123456789", TextPos::cr((1,6)), TextFormat::from((WHITE, TextSize::Normal)));
-    graphics.draw_text("Symbols:", TextPos::cr((1,7)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1,8)), TextFormat::from((WHITE, TextSize::Normal)));
-    graphics.draw_text("Custom:", TextPos::cr((1,9)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
-    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,10)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("Size: NORMAL", TextPos::cr((1, 2)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
+    graphics.draw_text("Letters:", TextPos::cr((1, 3)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
+    graphics.draw_text("ABCDEFGHIJKLMNOPQRSTVWXYZ", TextPos::cr((1, 4)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("Numbers:", TextPos::cr((1, 5)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
+    graphics.draw_text("0123456789", TextPos::cr((1, 6)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("Symbols:", TextPos::cr((1, 7)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
+    graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1, 8)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("Custom:", TextPos::cr((1, 9)), TextFormat::from((LIGHT_GRAY, TextSize::Normal)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1, 10)), TextFormat::from((WHITE, TextSize::Normal)));
 
-    graphics.draw_text("Size: SMALL",TextPos::cr((1,17)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("Letters:", TextPos::cr((1,18)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("ABCDEFGHIJKLMNOPQRSTVWXYZ", TextPos::cr((1,19)), TextFormat::from((WHITE, TextSize::Small)));
-    graphics.draw_text("Numbers:", TextPos::cr((1,20)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("0123456789", TextPos::cr((1,21)), TextFormat::from((WHITE, TextSize::Small)));
-    graphics.draw_text("Symbols:", TextPos::cr((1,22)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1,23)), TextFormat::from((WHITE, TextSize::Small)));
-    graphics.draw_text("Custom:", TextPos::cr((1,24)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
-    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,25)), TextFormat::from((WHITE, TextSize::Small)));
+    graphics.draw_text("Size: SMALL", TextPos::cr((1, 17)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
+    graphics.draw_text("Letters:", TextPos::cr((1, 18)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
+    graphics.draw_text("ABCDEFGHIJKLMNOPQRSTVWXYZ", TextPos::cr((1, 19)), TextFormat::from((WHITE, TextSize::Small)));
+    graphics.draw_text("Numbers:", TextPos::cr((1, 20)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
+    graphics.draw_text("0123456789", TextPos::cr((1, 21)), TextFormat::from((WHITE, TextSize::Small)));
+    graphics.draw_text("Symbols:", TextPos::cr((1, 22)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
+    graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1, 23)), TextFormat::from((WHITE, TextSize::Small)));
+    graphics.draw_text("Custom:", TextPos::cr((1, 24)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1, 25)), TextFormat::from((WHITE, TextSize::Small)));
 }
 
 fn test_6(graphics: &mut Graphics) {
     draw_title(graphics, "6) Draw offset");
 
-    let drawable = Drawable::from_obj(Rect::new((100,100),(120,120)), fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((100, 100), (120, 120)), fill(BLUE));
     graphics.draw(&drawable);
     graphics.draw_offset((20, 20), &drawable);
     graphics.draw_offset((-20, -20), &drawable);
@@ -255,87 +246,87 @@ fn test_6(graphics: &mut Graphics) {
 fn test_7(graphics: &mut Graphics) {
     draw_title(graphics, "7) Drawable mutation");
 
-    let drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((0, 0), (20, 20)).as_polygon(), fill(BLUE));
     let red = drawable.with_draw_type(stroke(RED));
     let rotated = drawable.with_rotation(45);
     let larger = drawable.with_scale(1.2);
     let smaller = drawable.with_scale(0.8);
-    graphics.draw_offset((30,30),&drawable);
+    graphics.draw_offset((30, 30), &drawable);
     graphics.draw_offset((100, 30), &red);
     graphics.draw_offset((100, 60), &rotated);
     graphics.draw_offset((100, 90), &smaller);
     graphics.draw_offset((100, 120), &larger);
-    graphics.draw(&Drawable::from_obj(Rect::new((128,118),(152,142)).as_polygon(),fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new((128, 118), (152, 142)).as_polygon(), fill(BLUE)));
 }
 
 fn test_8(graphics: &mut Graphics) {
     draw_title(graphics, "8) Polygons");
-    let poly1=  Drawable::from_obj(Polygon::new(&[(30,30),(40,29),(50,50),(40,60)]), stroke(BLUE));
+    let poly1 = Drawable::from_obj(Polygon::new(&[(30, 30), (40, 29), (50, 50), (40, 60)]), stroke(BLUE));
     graphics.draw(&poly1);
-    graphics.draw_offset((0,60), &poly1.with_draw_type(fill(YELLOW)));
-    graphics.draw_offset((60,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(45));
-    graphics.draw_offset((120,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(80));
-    graphics.draw_offset((180,60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(160));
-    graphics.draw_offset((00,120), &poly1.with_draw_type(fill(MAGENTA)).with_scale(1.5));
+    graphics.draw_offset((0, 60), &poly1.with_draw_type(fill(YELLOW)));
+    graphics.draw_offset((60, 60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(45));
+    graphics.draw_offset((120, 60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(80));
+    graphics.draw_offset((180, 60), &poly1.with_draw_type(fill(YELLOW)).with_rotation(160));
+    graphics.draw_offset((00, 120), &poly1.with_draw_type(fill(MAGENTA)).with_scale(1.5));
 }
 
 fn test_9(graphics: &mut Graphics) {
     draw_title(graphics, "9) Polygon mutation");
 
-    let neg_drawable = Drawable::from_obj(Rect::new((0,0),(20,20)).as_polygon(), fill(BLUE));
+    let neg_drawable = Drawable::from_obj(Rect::new((0, 0), (20, 20)).as_polygon(), fill(BLUE));
     let neg_scaled = neg_drawable.with_scale(1.2);
 
     graphics.draw_offset(QUAD_BL, &neg_drawable);
-    graphics.draw_offset(QUAD_BL + (40,0), &neg_scaled);
+    graphics.draw_offset(QUAD_BL + (40, 0), &neg_scaled);
 
-    let drawable = Drawable::from_obj(Rect::new((10,10),(30,30)).as_polygon(), fill(BLUE));
+    let drawable = Drawable::from_obj(Rect::new((10, 10), (30, 30)).as_polygon(), fill(BLUE));
     let scaled = drawable.with_scale(1.2);
 
     graphics.draw_offset(QUAD_TL, &drawable);
-    graphics.draw_offset(QUAD_TL + (40,0), &scaled);
+    graphics.draw_offset(QUAD_TL + (40, 0), &scaled);
 }
 
 fn test_10(graphics: &mut Graphics) {
     draw_title(graphics, "10) Off screen squares");
 
-    graphics.draw(&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new(TOP_LEFT - (10, 10), TOP_LEFT + (10, 10)), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10, 10), BOTTOM_RIGHT + (10, 10)), fill(BLUE)));
 
-    graphics.draw_offset((50,50),&Drawable::from_obj(Rect::new(TOP_LEFT - (10,10),TOP_LEFT + (10,10)), fill(BLUE)));
-    graphics.draw_offset((-50,-50),&Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10,10), BOTTOM_RIGHT + (10,10)), fill(BLUE)));
+    graphics.draw_offset((50, 50), &Drawable::from_obj(Rect::new(TOP_LEFT - (10, 10), TOP_LEFT + (10, 10)), fill(BLUE)));
+    graphics.draw_offset((-50, -50), &Drawable::from_obj(Rect::new(BOTTOM_RIGHT - (10, 10), BOTTOM_RIGHT + (10, 10)), fill(BLUE)));
 }
 
 fn test_11(graphics: &mut Graphics) {
     draw_title(graphics, "11) Off screen circles");
 
-    graphics.draw(&Drawable::from_obj(Circle::new(TOP_LEFT ,10), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Circle::new(TOP_LEFT, 10), fill(BLUE)));
     graphics.draw(&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), fill(BLUE)));
 
-    graphics.draw_offset((50,50),&Drawable::from_obj(Circle::new(TOP_LEFT ,10), fill(BLUE)));
-    graphics.draw_offset((-50,-50),&Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), fill(BLUE)));
+    graphics.draw_offset((50, 50), &Drawable::from_obj(Circle::new(TOP_LEFT, 10), fill(BLUE)));
+    graphics.draw_offset((-50, -50), &Drawable::from_obj(Circle::new(BOTTOM_RIGHT, 10), fill(BLUE)));
 }
 
 fn test_12(graphics: &mut Graphics) {
     draw_title(graphics, "12) Off screen polygons");
 
-    graphics.draw(&Drawable::from_obj(Polygon::new(&[TOP_LEFT - (10,10),TOP_LEFT + (10,-10), TOP_LEFT + (10,10), TOP_LEFT + (-10,10)]), fill(BLUE)));
-    graphics.draw(&Drawable::from_obj(Polygon::new(&[BOTTOM_RIGHT - (10,10),BOTTOM_RIGHT + (10,-10), BOTTOM_RIGHT + (10,10), BOTTOM_RIGHT + (-10,10)]), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(&[TOP_LEFT - (10, 10), TOP_LEFT + (10, -10), TOP_LEFT + (10, 10), TOP_LEFT + (-10, 10)]), fill(BLUE)));
+    graphics.draw(&Drawable::from_obj(Polygon::new(&[BOTTOM_RIGHT - (10, 10), BOTTOM_RIGHT + (10, -10), BOTTOM_RIGHT + (10, 10), BOTTOM_RIGHT + (-10, 10)]), fill(BLUE)));
 
-    let left_poly = Drawable::from_obj(Polygon::new(&[(-10,50),(20,50),(20,70),(-10,70)]), fill(BLUE));
+    let left_poly = Drawable::from_obj(Polygon::new(&[(-10, 50), (20, 50), (20, 70), (-10, 70)]), fill(BLUE));
     graphics.draw(&left_poly);
-    graphics.draw_offset((50,0),&left_poly);
+    graphics.draw_offset((50, 0), &left_poly);
 
-    let top_poly = Drawable::from_obj(Polygon::new(&[(200,-10),(220,-10),(220,30),(200,30)]), fill(BLUE));
+    let top_poly = Drawable::from_obj(Polygon::new(&[(200, -10), (220, -10), (220, 30), (200, 30)]), fill(BLUE));
     graphics.draw(&top_poly);
-    graphics.draw_offset((0,70),&top_poly);
+    graphics.draw_offset((0, 70), &top_poly);
 
-    let right_poly = Drawable::from_obj(Polygon::new(&[(230,130),(260,130),(260,150),(230,150)]), fill(BLUE));
+    let right_poly = Drawable::from_obj(Polygon::new(&[(230, 130), (260, 130), (260, 150), (230, 150)]), fill(BLUE));
     graphics.draw(&right_poly);
-    graphics.draw_offset((-50,0),&right_poly);
+    graphics.draw_offset((-50, 0), &right_poly);
 
-    let bottom_poly = Drawable::from_obj(Polygon::new(&[(100,230),(120,230),(120,260),(100,260)]), fill(BLUE));
+    let bottom_poly = Drawable::from_obj(Polygon::new(&[(100, 230), (120, 230), (120, 260), (100, 260)]), fill(BLUE));
     graphics.draw(&bottom_poly);
-    graphics.draw_offset((0,-70),&bottom_poly);
+    graphics.draw_offset((0, -70), &bottom_poly);
 }
 
 fn test_13(graphics: &mut Graphics) {
@@ -353,7 +344,7 @@ fn test_14(graphics: &mut Graphics, degrees: isize) {
     graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
     graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
 
-    let rect = Rect::new(CENTER - (20,20), CENTER + (20,20)).as_polygon();
+    let rect = Rect::new(CENTER - (20, 20), CENTER + (20, 20)).as_polygon();
     let drawable = Drawable::from_obj(rect, stroke(MAGENTA));
     graphics.draw(&drawable.with_rotation(degrees));
 }
@@ -364,7 +355,7 @@ fn test_15(graphics: &mut Graphics, degrees: isize) {
     graphics.draw_circle(Circle::new(CENTER, 27), stroke(BLUE));
     graphics.draw_circle(Circle::new(CENTER, 20), stroke(BLUE));
 
-    let rect = Rect::new(CENTER - (20,20), CENTER + (20,20)).as_polygon();
+    let rect = Rect::new(CENTER - (20, 20), CENTER + (20, 20)).as_polygon();
     let drawable = Drawable::from_obj(rect, fill(RED));
     graphics.draw(&drawable.with_rotation(degrees));
 }
@@ -394,11 +385,11 @@ fn test_17(graphics: &mut Graphics, degrees: isize) {
 fn test_18(graphics: &mut Graphics) {
     draw_title(graphics, "18) Line Rotation");
 
-    graphics.draw_line((60,50),(60,150), YELLOW);
-    graphics.draw_line((160,50),(160,150), YELLOW);
+    graphics.draw_line((60, 50), (60, 150), YELLOW);
+    graphics.draw_line((160, 50), (160, 150), YELLOW);
 
-    let line1 = Line::new((60,50),(60,150)).rotate(47);
-    let line2 = Line::new((160,50),(160,150)).rotate_around(47,coord!(160,150));
+    let line1 = Line::new((60, 50), (60, 150)).rotate(47);
+    let line2 = Line::new((160, 50), (160, 150)).rotate_around(47, coord!(160,150));
 
     graphics.draw(&Drawable::from_obj(line1, stroke(BLUE)));
     graphics.draw(&Drawable::from_obj(line2, stroke(BLUE)));
@@ -407,7 +398,7 @@ fn test_18(graphics: &mut Graphics) {
 fn test_19(graphics: &mut Graphics) {
     draw_title(graphics, "19) Moving shapes");
 
-    let triangle = Triangle::equilateral((40,40),10, FlatSide::Left);
+    let triangle = Triangle::equilateral((40, 40), 10, FlatSide::Left);
     let moved = triangle.move_to(coord!(60,40));
     let translated = triangle.translate_by(coord!(0,20));
 
@@ -416,7 +407,7 @@ fn test_19(graphics: &mut Graphics) {
     graphics.draw_triangle(translated, fill(RED));
 
 
-    let rect = Rect::new((140,30),(170,50));
+    let rect = Rect::new((140, 30), (170, 50));
     let moved = rect.move_to(coord!(180,30));
     let translated = rect.translate_by(coord!(0,30));
 
@@ -425,7 +416,7 @@ fn test_19(graphics: &mut Graphics) {
     graphics.draw_rect(translated, fill(RED));
 
 
-    let polygon = Polygon::new(&[(40, 120),(60,120),(55,130),(30,150)]);
+    let polygon = Polygon::new(&[(40, 120), (60, 120), (55, 130), (30, 150)]);
     let moved = polygon.move_to(coord!(100,120));
     let translated = polygon.translate_by(coord!(0,30));
 
@@ -446,9 +437,9 @@ fn test_21(graphics: &mut Graphics, degrees: isize) {
 
     graphics.draw_arc(QUAD_TL, 0, 90, 20, false, RED);
 
-    graphics.draw_arc(QUAD_TR, degrees,degrees+30, 40, false, BLUE);
-    graphics.draw_arc(QUAD_TR, degrees+10,degrees+40, 39, false, GREEN);
-    graphics.draw_arc(QUAD_TR, degrees+20,degrees+50, 38, false, RED);
+    graphics.draw_arc(QUAD_TR, degrees, degrees + 30, 40, false, BLUE);
+    graphics.draw_arc(QUAD_TR, degrees + 10, degrees + 40, 39, false, GREEN);
+    graphics.draw_arc(QUAD_TR, degrees + 20, degrees + 50, 38, false, RED);
 
     graphics.draw_arc(QUAD_BL, 0, 300, 4, false, YELLOW);
     graphics.draw_arc(QUAD_BL, 0, 300, 4, false, ORANGE);
@@ -459,15 +450,15 @@ fn test_21(graphics: &mut Graphics, degrees: isize) {
 fn test_22(graphics: &mut Graphics) {
     draw_title(graphics, "22) Colors");
 
-    let colors = &[WHITE, LIGHT_GRAY,  RED, DARK_GRAY,GREEN, BLUE, YELLOW, MAGENTA, PURPLE, ORANGE, CYAN, BROWN, DARKER_GRAY, MID_GRAY, LIGHTER_GRAY, GB_0, GB_1, GB_2, GB_3, OFF_BLACK, OFF_WHITE];
-    let names= &["WHITE", "LIGHT GRAY", "RED", "DARK GRAY", "GREEN", "BLUE", "YELLOW", "MAGENTA", "PURPLE", "ORANGE", "CYAN", "BROWN", "DARKER GRAY", "MID GRAY", "LIGHTER GRAY", "GB 0", "GB 1", "GB 2", "GB 3", "OFF BLACK", "OFF WHITE"];
+    let colors = &[WHITE, LIGHT_GRAY, RED, DARK_GRAY, GREEN, BLUE, YELLOW, MAGENTA, PURPLE, ORANGE, CYAN, BROWN, DARKER_GRAY, MID_GRAY, LIGHTER_GRAY, GB_0, GB_1, GB_2, GB_3, OFF_BLACK, OFF_WHITE];
+    let names = &["WHITE", "LIGHT GRAY", "RED", "DARK GRAY", "GREEN", "BLUE", "YELLOW", "MAGENTA", "PURPLE", "ORANGE", "CYAN", "BROWN", "DARKER GRAY", "MID GRAY", "LIGHTER GRAY", "GB 0", "GB 1", "GB 2", "GB 3", "OFF BLACK", "OFF WHITE"];
 
-    let start = Coord::new(70,30);
+    let start = Coord::new(70, 30);
     let mut row = 0;
     let mut col = 0;
     let row_space = 120;
     let col_space = 20;
-    for (i,color) in colors.iter().enumerate() {
+    for (i, color) in colors.iter().enumerate() {
         let coord = Coord::from((row * row_space, col * col_space));
         graphics.draw_text(&format!("{}", names[i]), TextPos::px(coord + start), (*color, TextSize::Large, Positioning::Center));
         row += 1;
@@ -482,39 +473,38 @@ fn test_23(graphics: &mut Graphics) {
     draw_title(graphics, "23) Collections");
 
     let mut collection = ShapeCollection::new();
-    InsertShape::insert_above(&mut collection, Rect::new((150,150),(170,190)).as_polygon(), stroke(BLUE));
-    InsertShape::insert_above(&mut collection, Rect::new((190,150),(210,190)).as_polygon(), fill(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((150, 150), (170, 190)).as_polygon(), stroke(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((190, 150), (210, 190)).as_polygon(), fill(BLUE));
 
     graphics.draw(&collection);
 
-    graphics.draw(&collection.with_move((20,20)).with_draw_type(fill(YELLOW)));
+    graphics.draw(&collection.with_move((20, 20)).with_draw_type(fill(YELLOW)));
 
-    graphics.draw(&collection.with_translation((-80,00)).with_draw_type(fill(PURPLE)));
+    graphics.draw(&collection.with_translation((-80, 00)).with_draw_type(fill(PURPLE)));
 
-    graphics.draw(&collection.with_move((190,20)).with_draw_type(fill(MAGENTA)).with_scale(0.6));
+    graphics.draw(&collection.with_move((190, 20)).with_draw_type(fill(MAGENTA)).with_scale(0.6));
 }
 
 fn test_24(graphics: &mut Graphics, degrees: isize) {
     draw_title(graphics, "24) Rotating collections");
 
     let mut collection = ShapeCollection::new();
-    InsertShape::insert_above(&mut collection, Rect::new((100,0),(120,30)).as_polygon(), stroke(BLUE));
-    InsertShape::insert_above(&mut collection, Rect::new((130,0),(150,30)).as_polygon(), fill(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((100, 0), (120, 30)).as_polygon(), stroke(BLUE));
+    InsertShape::insert_above(&mut collection, Rect::new((130, 0), (150, 30)).as_polygon(), fill(BLUE));
 
-    graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
-
-    let mut collection = ShapeCollection::new();
-    InsertShape::insert_above(&mut collection, Rect::new((30,30),(50,60)).as_polygon(), stroke(YELLOW));
-    InsertShape::insert_above(&mut collection, Rect::new((60,60),(80,80)).as_polygon(), fill(YELLOW));
-
-    graphics.draw(&collection.with_rotation_around(degrees, (0,0)));
+    graphics.draw(&collection.with_rotation_around(degrees, (0, 0)));
 
     let mut collection = ShapeCollection::new();
-    InsertShape::insert_above(&mut collection, Rect::new((150,150),(170,170)).as_polygon(), stroke(MAGENTA));
-    InsertShape::insert_above(&mut collection, Rect::new((170,170),(190,190)).as_polygon(), fill(MAGENTA));
+    InsertShape::insert_above(&mut collection, Rect::new((30, 30), (50, 60)).as_polygon(), stroke(YELLOW));
+    InsertShape::insert_above(&mut collection, Rect::new((60, 60), (80, 80)).as_polygon(), fill(YELLOW));
+
+    graphics.draw(&collection.with_rotation_around(degrees, (0, 0)));
+
+    let mut collection = ShapeCollection::new();
+    InsertShape::insert_above(&mut collection, Rect::new((150, 150), (170, 170)).as_polygon(), stroke(MAGENTA));
+    InsertShape::insert_above(&mut collection, Rect::new((170, 170), (190, 190)).as_polygon(), fill(MAGENTA));
 
     graphics.draw(&collection.with_rotation(degrees));
-
 }
 
 fn test_25(graphics: &mut Graphics) {
@@ -528,24 +518,23 @@ fn test_25(graphics: &mut Graphics) {
     let bounds_multi_normal = TextSize::Normal.measure(long, WrappingStrategy::AtCol(6));
     let bounds_multi_large = TextSize::Large.measure(long, WrappingStrategy::AtCol(6));
 
-    graphics.draw_rect(Rect::new((0,0), bounds_short_normal).move_center_to(QUAD_TL), stroke(BLUE));
-    graphics.draw_rect(Rect::new((0,0), bounds_short_large).move_center_to(QUAD_TR), stroke(BLUE));
-    graphics.draw_rect(Rect::new((0,0), bounds_multi_normal).move_center_to(QUAD_BL), stroke(BLUE));
-    graphics.draw_rect(Rect::new((0,0), bounds_multi_large).move_center_to(QUAD_BR), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0, 0), bounds_short_normal).move_center_to(QUAD_TL), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0, 0), bounds_short_large).move_center_to(QUAD_TR), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0, 0), bounds_multi_normal).move_center_to(QUAD_BL), stroke(BLUE));
+    graphics.draw_rect(Rect::new((0, 0), bounds_multi_large).move_center_to(QUAD_BR), stroke(BLUE));
 
     graphics.draw_text(short, TextPos::px(QUAD_TL), (WHITE, TextSize::Normal, WrappingStrategy::None, Positioning::Center));
     graphics.draw_text(short, TextPos::px(QUAD_TR), (WHITE, TextSize::Large, WrappingStrategy::None, Positioning::Center));
     graphics.draw_text(long, TextPos::px(QUAD_BL), (WHITE, TextSize::Normal, WrappingStrategy::AtCol(6), Positioning::Center));
     graphics.draw_text(long, TextPos::px(QUAD_BR), (WHITE, TextSize::Large, WrappingStrategy::AtCol(6), Positioning::Center));
-
 }
 
 fn test_26(graphics: &mut Graphics, image: &IndexedImage, slow: &AnimatedIndexedImage, fast: &AnimatedIndexedImage) {
     draw_title(graphics, "26) Indexed Images");
 
-    graphics.draw_indexed_image((30,30),image);
-    graphics.draw_animated_image((130,30),slow);
-    graphics.draw_animated_image((130,50),fast);
+    graphics.draw_indexed_image((30, 30), image);
+    graphics.draw_animated_image((130, 30), slow);
+    graphics.draw_animated_image((130, 50), fast);
 }
 
 fn test_27(graphics: &mut Graphics) {
@@ -560,15 +549,14 @@ fn test_27(graphics: &mut Graphics) {
     let darker2 = darker.darken();
     let darker3 = darker2.darken();
 
-    let rect = Drawable::from_obj(Rect::new((0,0), (30,30)), DrawType::Fill(WHITE));
-    rect.with_move((10,100)).with_draw_type(fill(darker3)).render(graphics);
-    rect.with_move((40,100)).with_draw_type(fill(darker2)).render(graphics);
-    rect.with_move((70,100)).with_draw_type(fill(darker)).render(graphics);
-    rect.with_move((100,100)).with_draw_type(fill(color)).render(graphics);
-    rect.with_move((130,100)).with_draw_type(fill(brighter)).render(graphics);
-    rect.with_move((160,100)).with_draw_type(fill(brighter2)).render(graphics);
-    rect.with_move((190,100)).with_draw_type(fill(brighter3)).render(graphics);
-
+    let rect = Drawable::from_obj(Rect::new((0, 0), (30, 30)), DrawType::Fill(WHITE));
+    rect.with_move((10, 100)).with_draw_type(fill(darker3)).render(graphics);
+    rect.with_move((40, 100)).with_draw_type(fill(darker2)).render(graphics);
+    rect.with_move((70, 100)).with_draw_type(fill(darker)).render(graphics);
+    rect.with_move((100, 100)).with_draw_type(fill(color)).render(graphics);
+    rect.with_move((130, 100)).with_draw_type(fill(brighter)).render(graphics);
+    rect.with_move((160, 100)).with_draw_type(fill(brighter2)).render(graphics);
+    rect.with_move((190, 100)).with_draw_type(fill(brighter3)).render(graphics);
 }
 
 fn test_28(graphics: &mut Graphics) {
@@ -583,14 +571,14 @@ fn test_28(graphics: &mut Graphics) {
     let darker2 = darker.desaturate();
     let darker3 = darker2.desaturate();
 
-    let rect = Drawable::from_obj(Rect::new((0,0), (30,30)), DrawType::Fill(WHITE));
-    rect.with_move((10,100)).with_draw_type(fill(darker3)).render(graphics);
-    rect.with_move((40,100)).with_draw_type(fill(darker2)).render(graphics);
-    rect.with_move((70,100)).with_draw_type(fill(darker)).render(graphics);
-    rect.with_move((100,100)).with_draw_type(fill(color)).render(graphics);
-    rect.with_move((130,100)).with_draw_type(fill(brighter)).render(graphics);
-    rect.with_move((160,100)).with_draw_type(fill(brighter2)).render(graphics);
-    rect.with_move((190,100)).with_draw_type(fill(brighter3)).render(graphics);
+    let rect = Drawable::from_obj(Rect::new((0, 0), (30, 30)), DrawType::Fill(WHITE));
+    rect.with_move((10, 100)).with_draw_type(fill(darker3)).render(graphics);
+    rect.with_move((40, 100)).with_draw_type(fill(darker2)).render(graphics);
+    rect.with_move((70, 100)).with_draw_type(fill(darker)).render(graphics);
+    rect.with_move((100, 100)).with_draw_type(fill(color)).render(graphics);
+    rect.with_move((130, 100)).with_draw_type(fill(brighter)).render(graphics);
+    rect.with_move((160, 100)).with_draw_type(fill(brighter2)).render(graphics);
+    rect.with_move((190, 100)).with_draw_type(fill(brighter3)).render(graphics);
 }
 
 
@@ -599,15 +587,15 @@ fn test_29(graphics: &mut Graphics, image: &IndexedImage) {
 
     let mut orig = image.clone();
     let mut palette = orig.get_palette().to_vec();
-    palette.push(IciColor::new(125,16,150, 255));
+    palette.push(IciColor::new(125, 16, 150, 255));
     orig.set_palette(&palette).unwrap();
     orig.set_pixel(13, (palette.len() - 1) as u8).unwrap();
     let darker = orig.with_brightness(0.6);
     let sated = orig.with_saturate(-0.2);
 
-    graphics.draw_indexed_image((100,100),&orig);
-    graphics.draw_indexed_image((50,100),&darker);
-    graphics.draw_indexed_image((150,100),&sated);
+    graphics.draw_indexed_image((100, 100), &orig);
+    graphics.draw_indexed_image((50, 100), &darker);
+    graphics.draw_indexed_image((150, 100), &sated);
 }
 
 fn test_30(graphics: &mut Graphics, degrees: isize) {
@@ -615,12 +603,12 @@ fn test_30(graphics: &mut Graphics, degrees: isize) {
 
     let draw_type = stroke(WHITE);
 
-    let line = Drawable::from_obj(Line::new((20, 40), (40,40)), draw_type);
-    let rect = Drawable::from_obj(Rect::new((60,20),(90,60)), draw_type);
-    let triangle = Drawable::from_obj(Triangle::new((120, 20), (170,20),(145,70)), draw_type);
+    let line = Drawable::from_obj(Line::new((20, 40), (40, 40)), draw_type);
+    let rect = Drawable::from_obj(Rect::new((60, 20), (90, 60)), draw_type);
+    let triangle = Drawable::from_obj(Triangle::new((120, 20), (170, 20), (145, 70)), draw_type);
     let circle = Drawable::from_obj(Circle::new((40, 100), 20), draw_type);
     // let ellipse = Drawable::from_obj(Ellipse::new((100, 100), 20, 30), draw_type);
-    let polygon = Drawable::from_obj(Polygon::new(&[(150, 100),(170,100),(155,120),(180, 102),(150,180),(120,110)]), draw_type);
+    let polygon = Drawable::from_obj(Polygon::new(&[(150, 100), (170, 100), (155, 120), (180, 102), (150, 180), (120, 110)]), draw_type);
 
     graphics.draw(&line.with_rotation(degrees));
     graphics.draw(&rect.with_rotation(degrees));
@@ -635,12 +623,12 @@ fn test_31(graphics: &mut Graphics, degrees: isize) {
 
     let draw_type = fill(WHITE);
 
-    let line = Drawable::from_obj(Line::new((20, 40), (40,40)), draw_type);
-    let rect = Drawable::from_obj(Rect::new((60,20),(90,60)), draw_type);
-    let triangle = Drawable::from_obj(Triangle::new((120, 20), (170,20),(145,70)), draw_type);
+    let line = Drawable::from_obj(Line::new((20, 40), (40, 40)), draw_type);
+    let rect = Drawable::from_obj(Rect::new((60, 20), (90, 60)), draw_type);
+    let triangle = Drawable::from_obj(Triangle::new((120, 20), (170, 20), (145, 70)), draw_type);
     let circle = Drawable::from_obj(Circle::new((40, 100), 20), draw_type);
     // let ellipse = Drawable::from_obj(Ellipse::new((100, 100), 20, 30), draw_type);
-    let polygon = Drawable::from_obj(Polygon::new(&[(150, 100),(170,100),(155,120),(180, 102),(150,180),(120,110)]), draw_type);
+    let polygon = Drawable::from_obj(Polygon::new(&[(150, 100), (170, 100), (155, 120), (180, 102), (150, 180), (120, 110)]), draw_type);
 
     graphics.draw(&line.with_rotation(degrees));
     graphics.draw(&rect.with_rotation(degrees));
@@ -654,28 +642,28 @@ fn test_32(graphics: &mut Graphics, degrees: isize) {
     draw_title(graphics, "32) Shape Rotation (contains)");
 
     let draw_type = stroke(WHITE);
-    let contains =stroke(GREEN);
+    let contains = stroke(GREEN);
 
-    let line = Line::new((20, 40), (40,40)).rotate(degrees);
-    let rect = Rect::new((60,20),(90,60)).rotate(degrees);
-    let triangle = Triangle::new((120, 20), (170,20),(145,70)).rotate(degrees);
+    let line = Line::new((20, 40), (40, 40)).rotate(degrees);
+    let rect = Rect::new((60, 20), (90, 60)).rotate(degrees);
+    let triangle = Triangle::new((120, 20), (170, 20), (145, 70)).rotate(degrees);
     let circle = Circle::new((40, 100), 20).rotate(degrees);
     // let ellipse =Ellipse::new((100, 100), 20, 30).rotate(degrees);
-    let polygon = Polygon::new(&[(150, 100),(170,100),(155,120),(180, 102),(150,180),(120,110)]).rotate(degrees);
+    let polygon = Polygon::new(&[(150, 100), (170, 100), (155, 120), (180, 102), (150, 180), (120, 110)]).rotate(degrees);
 
-    let line_point = Coord::new(30,30);
-    let rect_point = Coord::new(71,21);
-    let triangle_point = Coord::new(146,19);
-    let circle_point = Coord::new(42,102);
-    let ellipse_point = Coord::new( 70,70);
-    let polygon_point = Coord::new( 170,130);
+    let line_point = Coord::new(30, 30);
+    let rect_point = Coord::new(71, 21);
+    let triangle_point = Coord::new(146, 19);
+    let circle_point = Coord::new(42, 102);
+    let ellipse_point = Coord::new(70, 70);
+    let polygon_point = Coord::new(170, 130);
 
-    let line_draw_type = if line.contains(line_point) { contains} else {draw_type};
-    let rect_draw_type = if rect.contains(rect_point) { contains} else {draw_type};
-    let triangle_draw_type = if triangle.contains(triangle_point) { contains} else {draw_type};
-    let circle_draw_type = if circle.contains(circle_point) { contains} else {draw_type};
+    let line_draw_type = if line.contains(line_point) { contains } else { draw_type };
+    let rect_draw_type = if rect.contains(rect_point) { contains } else { draw_type };
+    let triangle_draw_type = if triangle.contains(triangle_point) { contains } else { draw_type };
+    let circle_draw_type = if circle.contains(circle_point) { contains } else { draw_type };
     // let ellipse_draw_type = if ellipse.contains(ellipse_point) { contains} else {draw_type};
-    let polygon_draw_type = if polygon.contains(polygon_point) { contains} else {draw_type};
+    let polygon_draw_type = if polygon.contains(polygon_point) { contains } else { draw_type };
 
     graphics.draw(&Drawable::from_obj(line, line_draw_type));
     graphics.draw(&Drawable::from_obj(rect.clone(), rect_draw_type));
@@ -696,24 +684,24 @@ fn test_33(graphics: &mut Graphics) {
     graphics.clear(RED);
 
     graphics.clip_mut().add_rect(Rect::new(TOP_LEFT, BOTTOM_RIGHT));
-    graphics.clip_mut().remove_rect(Rect::new((70,70),(120,120)));
-    graphics.clip_mut().remove_circle(Circle::new((200,100), 20));
+    graphics.clip_mut().remove_rect(Rect::new((70, 70), (120, 120)));
+    graphics.clip_mut().remove_circle(Circle::new((200, 100), 20));
 
     graphics.clear_aware(DARK_GRAY);
 
     let mut image = Image::new_blank(20, 20);
-    image.set_pixel(0,0, CYAN);
-    image.set_pixel(19,0, MAGENTA);
-    image.set_pixel(0,19, GREEN);
-    image.set_pixel(19,19, PURPLE);
+    image.set_pixel(0, 0, CYAN);
+    image.set_pixel(19, 0, MAGENTA);
+    image.set_pixel(0, 19, GREEN);
+    image.set_pixel(19, 19, PURPLE);
 
-    graphics.draw_image((60,60), &image);
+    graphics.draw_image((60, 60), &image);
 
-    graphics.draw_image_unchecked((110,110), &image);
+    graphics.draw_image_unchecked((110, 110), &image);
 
     graphics.clip_mut().set_all_valid();
 
-    graphics.draw_rect(Rect::new((0,0), (SCREEN_WIDTH, 12)), fill(BLACK));
+    graphics.draw_rect(Rect::new((0, 0), (SCREEN_WIDTH, 12)), fill(BLACK));
 
     draw_title(graphics, "33) Clipping (complex)");
 }
@@ -722,9 +710,9 @@ fn test_34(graphics: &mut Graphics) {
     draw_title(graphics, "34) Polygons");
 
     let ellipse1 = Ellipse::new(QUAD_TL, 100, 50);
-    let ellipse2  = Ellipse::new(QUAD_TR, 50, 100);
-    let ellipse3  = Ellipse::new(QUAD_BL, 50, 100).rotate(45);
-    let ellipse4  = Ellipse::new(QUAD_BR, 50, 100).rotate(-45);
+    let ellipse2 = Ellipse::new(QUAD_TR, 50, 100);
+    let ellipse3 = Ellipse::new(QUAD_BL, 50, 100).rotate(45);
+    let ellipse4 = Ellipse::new(QUAD_BR, 50, 100).rotate(-45);
 
     let poly1 = ellipse1.as_polygon();
     let poly2 = ellipse2.as_polygon();
@@ -746,85 +734,84 @@ fn test_35(graphics: &mut Graphics) {
     draw_title(graphics, "35) Image Rotation/Flip");
 
     let mut image = Image::new_blank(12, 24);
-    image.set_pixel(0,0,BLUE);
-    image.set_pixel(1,1,BLUE);
-    image.set_pixel(2,2,BLUE);
-    image.set_pixel(3,3,BLUE);
-    image.set_pixel(11,22,RED);
-    image.set_pixel(11,23,RED);
-    image.set_pixel(10,23,RED);
+    image.set_pixel(0, 0, BLUE);
+    image.set_pixel(1, 1, BLUE);
+    image.set_pixel(2, 2, BLUE);
+    image.set_pixel(3, 3, BLUE);
+    image.set_pixel(11, 22, RED);
+    image.set_pixel(11, 23, RED);
+    image.set_pixel(10, 23, RED);
 
-    graphics.draw_image_unchecked((100,50), &image);
-    graphics.draw_image_unchecked((130,50), &image.rotate_cw());
-    graphics.draw_image_unchecked((170,50), &image.rotate_cw().rotate_cw());
-    graphics.draw_image_unchecked((70,50), &image.rotate_ccw());
-    graphics.draw_image_unchecked((40,50), &image.rotate_ccw().rotate_ccw());
+    graphics.draw_image_unchecked((100, 50), &image);
+    graphics.draw_image_unchecked((130, 50), &image.rotate_cw());
+    graphics.draw_image_unchecked((170, 50), &image.rotate_cw().rotate_cw());
+    graphics.draw_image_unchecked((70, 50), &image.rotate_ccw());
+    graphics.draw_image_unchecked((40, 50), &image.rotate_ccw().rotate_ccw());
 
     let mut flipped_v = image.clone();
     flipped_v.flip_vertical();
-    graphics.draw_image_unchecked((40,100), &flipped_v);
+    graphics.draw_image_unchecked((40, 100), &flipped_v);
 
     let mut flipped_h = image.clone();
     flipped_h.flip_horizontal();
-    graphics.draw_image_unchecked((70,100), &flipped_h);
+    graphics.draw_image_unchecked((70, 100), &flipped_h);
 
     let mut image = Image::new_blank(24, 24);
-    image.set_pixel(0,0,BLUE);
-    image.set_pixel(1,1,BLUE);
-    image.set_pixel(2,2,BLUE);
-    image.set_pixel(3,3,BLUE);
-    image.set_pixel(23,23,RED);
-    image.set_pixel(22,23,RED);
-    image.set_pixel(23,22,RED);
+    image.set_pixel(0, 0, BLUE);
+    image.set_pixel(1, 1, BLUE);
+    image.set_pixel(2, 2, BLUE);
+    image.set_pixel(3, 3, BLUE);
+    image.set_pixel(23, 23, RED);
+    image.set_pixel(22, 23, RED);
+    image.set_pixel(23, 22, RED);
 
-    graphics.draw_image_unchecked((100,180), &image);
-    graphics.draw_image_unchecked((130,180), &image.rotate_cw());
-    graphics.draw_image_unchecked((170,180), &image.rotate_cw().rotate_cw());
-    graphics.draw_image_unchecked((70,180), &image.rotate_ccw());
-    graphics.draw_image_unchecked((40,180), &image.rotate_ccw().rotate_ccw());
+    graphics.draw_image_unchecked((100, 180), &image);
+    graphics.draw_image_unchecked((130, 180), &image.rotate_cw());
+    graphics.draw_image_unchecked((170, 180), &image.rotate_cw().rotate_cw());
+    graphics.draw_image_unchecked((70, 180), &image.rotate_ccw());
+    graphics.draw_image_unchecked((40, 180), &image.rotate_ccw().rotate_ccw());
 
     let mut flipped_v = image.clone();
     flipped_v.flip_vertical();
-    graphics.draw_image_unchecked((40,220), &flipped_v);
+    graphics.draw_image_unchecked((40, 220), &flipped_v);
 
     let mut flipped_h = image.clone();
     flipped_h.flip_horizontal();
-    graphics.draw_image_unchecked((70,220), &flipped_h);
+    graphics.draw_image_unchecked((70, 220), &flipped_h);
 }
 
 
 fn test_36(graphics: &mut Graphics) {
     draw_title(graphics, "36) Large Text");
 
-    graphics.draw_text("Size: LARGE",TextPos::cr((1,2)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
-    graphics.draw_text("Letters:", TextPos::cr((1,3)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
-    graphics.draw_text("ABCDEFGHIJKL", TextPos::cr((1,4)), TextFormat::from((WHITE, TextSize::Large)));
-    graphics.draw_text("MNOPQRSTVWXYZ", TextPos::cr((1,5)), TextFormat::from((WHITE, TextSize::Large)));
-    graphics.draw_text("Numbers:", TextPos::cr((1,6)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
-    graphics.draw_text("0123456789", TextPos::cr((1,7)), TextFormat::from((WHITE, TextSize::Large)));
-    graphics.draw_text("Symbols:", TextPos::cr((1,8)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
-    graphics.draw_text("!@$%^&*(),./;'\\", TextPos::cr((1,9)), TextFormat::from((WHITE, TextSize::Large)));
-    graphics.draw_text("[]<>?:\"{}_+`~#", TextPos::cr((1,10)), TextFormat::from((WHITE, TextSize::Large)));
-    graphics.draw_text("Custom:", TextPos::cr((1,11)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
-    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1,12)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Size: LARGE", TextPos::cr((1, 2)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("Letters:", TextPos::cr((1, 3)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("ABCDEFGHIJKL", TextPos::cr((1, 4)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("MNOPQRSTVWXYZ", TextPos::cr((1, 5)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Numbers:", TextPos::cr((1, 6)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("0123456789", TextPos::cr((1, 7)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Symbols:", TextPos::cr((1, 8)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("!@$%^&*(),./;'\\", TextPos::cr((1, 9)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("[]<>?:\"{}_+`~#", TextPos::cr((1, 10)), TextFormat::from((WHITE, TextSize::Large)));
+    graphics.draw_text("Custom:", TextPos::cr((1, 11)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
+    graphics.draw_text("…¤£¥¢✓", TextPos::cr((1, 12)), TextFormat::from((WHITE, TextSize::Large)));
 }
 
 fn test_37(graphics: &mut Graphics) {
     draw_title(graphics, "37) Custom Font");
 
-    graphics.custom_font.insert(chr_to_code('b'), CustomLetter { small: [true; small::LETTER_PX_COUNT],..CustomLetter::default()});
+    graphics.custom_font.insert(chr_to_code('b'), CustomLetter { small: [true; small::LETTER_PX_COUNT], ..CustomLetter::default() });
 
-    graphics.draw_letter((20,20), 'b', TextSize::Small, WHITE);
+    graphics.draw_letter((20, 20), 'b', TextSize::Small, WHITE);
 
     graphics.custom_font.clear();
-
 }
 
 fn test_38(graphics: &mut Graphics) {
     draw_title(graphics, "38) Transparency");
 
-    graphics.draw_rect(Rect::new((60,60), (200,200)), fill(WHITE));
-    graphics.draw_rect(Rect::new((30,30), (80,80)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
-    graphics.draw_rect(Rect::new((100,30), (160,120)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
-    graphics.draw_rect(Rect::new((100,50), (160,140)), fill(Color::new(0.2, 0.5, 0.6, 0.5)));
+    graphics.draw_rect(Rect::new((60, 60), (200, 200)), fill(WHITE));
+    graphics.draw_rect(Rect::new((30, 30), (80, 80)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
+    graphics.draw_rect(Rect::new((100, 30), (160, 120)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
+    graphics.draw_rect(Rect::new((100, 50), (160, 140)), fill(Color::new(0.2, 0.5, 0.6, 0.5)));
 }
