@@ -101,6 +101,8 @@ impl System for Example {
             36 => test_36(graphics),
             37 => test_37(graphics),
             38 => test_38(graphics),
+            39 => test_39(graphics, &self.ici_static),
+            40 => test_40(graphics),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -113,7 +115,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 38;
+            self.current_test = 40;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         }
@@ -195,10 +197,10 @@ fn test_2(graphics: &mut Graphics) {
 fn test_3(graphics: &mut Graphics) {
     draw_title(graphics, "3) Right Angle Triangles");
 
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::TopLeft), stroke(BLUE)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::TopRight), stroke(YELLOW)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::BottomLeft), stroke(GREEN)));
-    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100, 100, AnglePosition::BottomRight), stroke(MAGENTA)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,  AnglePosition::TopLeft), stroke(BLUE)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,  AnglePosition::TopRight), stroke(YELLOW)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,  AnglePosition::BottomLeft), stroke(GREEN)));
+    graphics.draw(&Drawable::from_obj(Triangle::right_angle(CENTER, 100,  AnglePosition::BottomRight), stroke(MAGENTA)));
 }
 
 fn test_4(graphics: &mut Graphics) {
@@ -232,6 +234,9 @@ fn test_5(graphics: &mut Graphics) {
     graphics.draw_text("!@$%^&*(),./;'\\[]<>?:\"{}_+`~#", TextPos::cr((1, 23)), TextFormat::from((WHITE, TextSize::Small)));
     graphics.draw_text("Custom:", TextPos::cr((1, 24)), TextFormat::from((LIGHT_GRAY, TextSize::Small)));
     graphics.draw_text("…¤£¥¢✓", TextPos::cr((1, 25)), TextFormat::from((WHITE, TextSize::Small)));
+
+    graphics.draw_text("0\n1\n2\n3\n4\n5\n6\n7\n8\n9", TextPos::cr((30, 14)), TextFormat::from((WHITE, TextSize::Normal)));
+    graphics.draw_text("0\n1\n2\n3\n4\n5\n6\n7\n8\n9", TextPos::cr((40, 21)), TextFormat::from((WHITE, TextSize::Small)));
 }
 
 fn test_6(graphics: &mut Graphics) {
@@ -795,6 +800,8 @@ fn test_36(graphics: &mut Graphics) {
     graphics.draw_text("[]<>?:\"{}_+`~#", TextPos::cr((1, 10)), TextFormat::from((WHITE, TextSize::Large)));
     graphics.draw_text("Custom:", TextPos::cr((1, 11)), TextFormat::from((LIGHT_GRAY, TextSize::Large)));
     graphics.draw_text("…¤£¥¢✓", TextPos::cr((1, 12)), TextFormat::from((WHITE, TextSize::Large)));
+
+    graphics.draw_text("0\n1\n2\n3\n4\n5\n6\n7\n8\n9", TextPos::cr((20, 7)), TextFormat::from((WHITE, TextSize::Large)));
 }
 
 fn test_37(graphics: &mut Graphics) {
@@ -814,4 +821,26 @@ fn test_38(graphics: &mut Graphics) {
     graphics.draw_rect(Rect::new((30, 30), (80, 80)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
     graphics.draw_rect(Rect::new((100, 30), (160, 120)), fill(Color::new(1.0, 0.2, 0.3, 0.5)));
     graphics.draw_rect(Rect::new((100, 50), (160, 140)), fill(Color::new(0.2, 0.5, 0.6, 0.5)));
+}
+
+fn test_39(graphics: &mut Graphics, indexed_image: &IndexedImage) {
+    draw_title(graphics, "39) IndexedImage -> Image");
+    let image=  Image::from_indexed(indexed_image);
+
+    graphics.draw_indexed_image((100,100), &indexed_image);
+    graphics.draw_image((130,100), &image);
+}
+
+fn test_40(graphics: &mut Graphics) {
+    draw_title(graphics, "40) More Triangles");
+
+    let top = Triangle::right_angle(coord!(SCREEN_WIDTH/2,SCREEN_HEIGHT/2) - (0,50), 50,AnglePosition::Top);
+    let bottom = Triangle::right_angle(coord!(SCREEN_WIDTH/2,SCREEN_HEIGHT/2) + (0,50), 50,AnglePosition::Bottom);
+    let left = Triangle::right_angle(coord!(SCREEN_WIDTH/2,SCREEN_HEIGHT/2) - (50,0), 50,AnglePosition::Left);
+    let right= Triangle::right_angle(coord!(SCREEN_WIDTH/2,SCREEN_HEIGHT/2) + (50,0), 50,AnglePosition::Right);
+
+    graphics.draw_triangle(top, stroke(GB_0));
+    graphics.draw_triangle(bottom, stroke(GB_1));
+    graphics.draw_triangle(left, stroke(GB_2));
+    graphics.draw_triangle(right, stroke(GB_3));
 }
