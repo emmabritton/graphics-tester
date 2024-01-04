@@ -477,7 +477,7 @@ fn test_22(graphics: &mut Graphics) {
 fn test_23(graphics: &mut Graphics) {
     draw_title(graphics, "23) Collections");
 
-    let mut collection = ShapeCollection::new();
+    let mut collection = ShapeCollection::default();
     InsertShape::insert_above(&mut collection, Rect::new((150, 150), (170, 190)).as_polygon(), stroke(BLUE));
     InsertShape::insert_above(&mut collection, Rect::new((190, 150), (210, 190)).as_polygon(), fill(BLUE));
 
@@ -493,19 +493,19 @@ fn test_23(graphics: &mut Graphics) {
 fn test_24(graphics: &mut Graphics, degrees: isize) {
     draw_title(graphics, "24) Rotating collections");
 
-    let mut collection = ShapeCollection::new();
+    let mut collection = ShapeCollection::default();
     InsertShape::insert_above(&mut collection, Rect::new((100, 0), (120, 30)).as_polygon(), stroke(BLUE));
     InsertShape::insert_above(&mut collection, Rect::new((130, 0), (150, 30)).as_polygon(), fill(BLUE));
 
     graphics.draw(&collection.with_rotation_around(degrees, (0, 0)));
 
-    let mut collection = ShapeCollection::new();
+    let mut collection = ShapeCollection::default();
     InsertShape::insert_above(&mut collection, Rect::new((30, 30), (50, 60)).as_polygon(), stroke(YELLOW));
     InsertShape::insert_above(&mut collection, Rect::new((60, 60), (80, 80)).as_polygon(), fill(YELLOW));
 
     graphics.draw(&collection.with_rotation_around(degrees, (0, 0)));
 
-    let mut collection = ShapeCollection::new();
+    let mut collection = ShapeCollection::default();
     InsertShape::insert_above(&mut collection, Rect::new((150, 150), (170, 170)).as_polygon(), stroke(MAGENTA));
     InsertShape::insert_above(&mut collection, Rect::new((170, 170), (190, 190)).as_polygon(), fill(MAGENTA));
 
