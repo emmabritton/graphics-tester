@@ -1,6 +1,7 @@
 use pixels_graphics_lib::prelude::*;
 use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::CustomLetter;
+use pixels_graphics_lib::buffer_graphics_lib::renderable_macros::DrawOffset;
 
 struct Animation {
     pub value: f32,
@@ -825,10 +826,10 @@ fn test_38(graphics: &mut Graphics) {
 
 fn test_39(graphics: &mut Graphics, indexed_image: &IndexedImage) {
     draw_title(graphics, "39) IndexedImage -> Image");
-    let image=  Image::from_indexed(indexed_image);
+    let image=  Image::from_indexed(indexed_image).to_renderable((130,100), DrawOffset::TopLeft);
 
     graphics.draw_indexed_image((100,100), &indexed_image);
-    graphics.draw_image((130,100), &image);
+    image.render(graphics);
 }
 
 fn test_40(graphics: &mut Graphics) {
