@@ -35,13 +35,14 @@ struct Example {
     ici_static: IndexedImage,
     ici_slow: AnimatedIndexedImage,
     ici_fast: AnimatedIndexedImage,
+    mouse_xy: Coord
 }
 
 fn main() -> Result<()> {
     let (ici_static, _) = IndexedImage::from_file_contents(include_bytes!("../assets/test.ici")).unwrap();
     let (ici_slow, _) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/slow.ica")).unwrap();
     let (ici_fast, _) = AnimatedIndexedImage::from_file_contents(include_bytes!("../assets/fast.ica")).unwrap();
-    let system = Box::new(Example { should_quit: false, ici_static, ici_slow, current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001), slow: Animation::new(0.0, 0.1, 0.0, 0.001), ici_fast });
+    let system = Box::new(Example { should_quit: false, ici_static, ici_slow, current_test: 0, fast: Animation::new(0.0, 1.0, 0.0, 0.001), slow: Animation::new(0.0, 0.1, 0.0, 0.001), ici_fast, mouse_xy: Default::default() });
     run(SCREEN_WIDTH as usize, SCREEN_HEIGHT as usize, "Testing", system, Options::default())?;
     Ok(())
 }
@@ -58,6 +59,10 @@ impl System for Example {
         self.slow.update(timing.delta as f32);
         self.ici_slow.update(timing.fixed_time_step);
         self.ici_fast.update(timing.fixed_time_step);
+    }
+
+    fn on_mouse_move(&mut self, mouse: &MouseData) {
+        self.mouse_xy = mouse.xy;
     }
 
     fn render(&mut self, graphics: &mut Graphics) {
@@ -104,6 +109,7 @@ impl System for Example {
             38 => test_38(graphics),
             39 => test_39(graphics, &self.ici_static),
             40 => test_40(graphics),
+            41 => test_41(graphics, self.mouse_xy),
             _ => graphics.draw_text(&format!("Unknown test: {}", self.current_test), CENTER.textpos(), TextFormat::from((RED, TextSize::Normal, Positioning::Center)))
         }
     }
@@ -116,7 +122,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 40;
+            self.current_test = 41;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         }
@@ -844,4 +850,18 @@ fn test_40(graphics: &mut Graphics) {
     graphics.draw_triangle(bottom, stroke(GB_1));
     graphics.draw_triangle(left, stroke(GB_2));
     graphics.draw_triangle(right, stroke(GB_3));
+}
+
+fn test_41(graphics: &mut Graphics, mouse_xy: Coord) {
+    let line1 = Line::new((30, 20), (60, 100));
+    let line_nearest1 = line1.nearest_point(mouse_xy);
+
+    let line2 = Line::new((120, 40), (60, 120));
+    let line_nearest2 = line2.nearest_point(mouse_xy);
+
+    graphics.draw_line(line1.start(), line1.end(), MID_GRAY);
+    graphics.set_pixel(line_nearest1.x, line_nearest1.y, RED);
+
+    graphics.draw_line(line2.start(), line2.end(), MID_GRAY);
+    graphics.set_pixel(line_nearest2.x, line_nearest2.y, RED);
 }
