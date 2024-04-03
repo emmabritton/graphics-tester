@@ -9,5 +9,5 @@ description = "Graphics tester"
 publish = false
 
 [dependencies]
-pixels-graphics-lib = { version = "0.17.0", default-features = false, features = ["window_prefs"] }
+pixels-graphics-lib = { version = "0.18.0", default-features = false, features = ["window_prefs"] }
 anyhow = "1.0.81"

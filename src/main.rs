@@ -159,6 +159,9 @@ impl System for Example {
             54 => test_font(graphics, PixelFont::Standard8x10, "54) Standard 8x10"),
             55 => test_font(graphics, PixelFont::Outline7x9, "55) Outline 7x9"),
             56 => test_font(graphics, PixelFont::Script8x8, "56) Script 8x8"),
+            57 => test_57(graphics),
+            58 => test_alpha(graphics, PixelFont::Limited3x5, "58) Limited 3x5", 3,5),
+            59 => test_font(graphics, PixelFont::Limited3x5, "59) Limited 3x5"),
             _ => graphics.draw_text(
                 &format!("Unknown test: {}", self.current_test),
                 CENTER.textpos(),
@@ -175,7 +178,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 56;
+            self.current_test = 59;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         }
@@ -1614,4 +1617,16 @@ fn test_sentence(graphics: &mut Graphics, idx: usize, fonts: &[(PixelFont, &str)
         graphics.draw_text(&format!("This is the font '{name}'."), TextPos::px(pos), (WHITE, *font));
         graphics.draw_text("The 7 quick brown foxes jump over the 12 lazy dogs!", TextPos::px(pos + (0, 20)), (WHITE, *font, WrappingStrategy::SpaceBeforeCol(font.px_to_cols(SCREEN_WIDTH as usize - 8))));
     }
+}
+
+fn test_57(graphics: &mut Graphics) {
+    draw_title(graphics, "57) copy_to_indexed_image");
+
+    let mut buffer = Graphics::create_buffer(20, 20);
+    let mut image_graphics = Graphics::new(&mut buffer, 20, 20).unwrap();
+    image_graphics.clear(MID_GRAY);
+    image_graphics.draw_rect(Rect::new((0,0), (19,19)), stroke(BLUE));
+    let image = image_graphics.copy_to_indexed_image(false).unwrap();
+
+    graphics.draw_indexed_image((50,50), &image);
 }
