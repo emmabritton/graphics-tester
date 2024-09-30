@@ -4,6 +4,7 @@ use pixels_graphics_lib::buffer_graphics_lib::CustomLetter;
 use pixels_graphics_lib::prelude::palette::simplify_palette;
 use pixels_graphics_lib::prelude::*;
 use pixels_graphics_lib::prelude::font::standard_4x5;
+use pixels_graphics_lib::prelude::KeyCode::KeyC;
 
 struct Animation {
     pub value: f32,
@@ -44,9 +45,18 @@ struct Example {
     ici_fast: AnimatedIndexedImage,
     image: IndexedImage,
     mouse_xy: Coord,
+    tilemap: Tilemap<IndexedImage>,
+    tilemap2: Tilemap<IndexedImage>,
+    map_center: MapPosition
 }
 
 fn main() -> Result<()> {
+    let ici_tileset: IciTileset = ron::from_str(include_str!("../assets/test.ici_tileset")).unwrap();
+    let tilemap_file: TilemapFile = ron::from_str(include_str!("../assets/test.tilemap")).unwrap();
+    let tileset = ici_tileset.into_tileset().unwrap();
+    let tilemap: Tilemap<IndexedImage> = tilemap_file.into_tilemap(&tileset, (200,200)).unwrap();
+    let tilemap_file: TilemapFile = ron::from_str(include_str!("../assets/test2.tilemap")).unwrap();
+    let tilemap2: Tilemap<IndexedImage> = tilemap_file.into_tilemap(&tileset, (200,200)).unwrap();
     let (ici_static, _) =
         IndexedImage::from_file_contents(include_bytes!("../assets/test.ici")).unwrap();
     let (ici_slow, _) =
@@ -56,6 +66,9 @@ fn main() -> Result<()> {
     let (image, _) =
         IndexedImage::from_file_contents(include_bytes!("../assets/image.ici")).unwrap();
     let system = Box::new(Example {
+        map_center: MapPosition::new(4,4),
+        tilemap,
+        tilemap2,
         image,
         should_quit: false,
         ici_static,
@@ -76,11 +89,15 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-const KEYS: [KeyCode; 4] = [
+const KEYS: [KeyCode; 8] = [
     KeyCode::ArrowLeft,
     KeyCode::ArrowRight,
     KeyCode::Space,
     KeyCode::Escape,
+    KeyCode::KeyW,
+    KeyCode::KeyA,
+    KeyCode::KeyS,
+    KeyCode::KeyD,
 ];
 
 impl System for Example {
@@ -88,7 +105,7 @@ impl System for Example {
         &KEYS
     }
 
-    fn update(&mut self, timing: &Timing) {
+    fn update(&mut self, timing: &Timing, _: &Window) {
         self.fast.update(timing.delta as f32);
         self.slow.update(timing.delta as f32);
         self.ici_slow.update(timing.fixed_time_step);
@@ -162,6 +179,8 @@ impl System for Example {
             57 => test_57(graphics),
             58 => test_alpha(graphics, PixelFont::Limited3x5, "58) Limited 3x5", 3,5),
             59 => test_font(graphics, PixelFont::Limited3x5, "59) Limited 3x5"),
+            60 => test_60(graphics, &self.tilemap),
+            61 => test_61(graphics, &self.tilemap2, &self.map_center),
             _ => graphics.draw_text(
                 &format!("Unknown test: {}", self.current_test),
                 CENTER.textpos(),
@@ -178,9 +197,37 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 59;
+            self.current_test = 61;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
+        } else if keys.contains(&KeyCode::KeyW) {
+            self.map_center.y=self.map_center.y.saturating_sub(1);
+            self.tilemap2.center_on(self.map_center)
+        } else if keys.contains(&KeyCode::KeyS) {
+            self.map_center.y += 1;
+            self.tilemap2.center_on(self.map_center)
+        } else if keys.contains(&KeyCode::KeyA) {
+            self.map_center.x=self.map_center.x.saturating_sub(1);
+            self.tilemap2.center_on(self.map_center)
+        } else if keys.contains(&KeyCode::KeyD) {
+            self.map_center.x += 1;
+            self.tilemap2.center_on(self.map_center)
+        } else if keys.contains(&KeyCode::KeyI) {
+            let y = (self.tilemap2.subtile_offset().1 - 1).clamp(-16,16);
+            let x = self.tilemap2.subtile_offset().0;
+            self.tilemap2.set_subtile_offset((x,y));
+        } else if keys.contains(&KeyCode::KeyK) {
+            let y = (self.tilemap2.subtile_offset().1 + 1).clamp(-16,16);
+            let x = self.tilemap2.subtile_offset().0;
+            self.tilemap2.set_subtile_offset((x,y));
+        } else if keys.contains(&KeyCode::KeyJ) {
+            let x = (self.tilemap2.subtile_offset().0 - 1).clamp(-16,16);
+            let y = self.tilemap2.subtile_offset().1;
+            self.tilemap2.set_subtile_offset((x,y));
+        } else if keys.contains(&KeyCode::KeyL) {
+            let x = (self.tilemap2.subtile_offset().0 + 1).clamp(-16,16);
+            let y = self.tilemap2.subtile_offset().1;
+            self.tilemap2.set_subtile_offset((x,y));
         }
     }
 
@@ -1269,7 +1316,7 @@ fn test_33(graphics: &mut Graphics) {
 
     graphics.draw_image((60, 60), &image);
 
-    graphics.draw_image_unchecked((110, 110), &image);
+    graphics.draw_image((110, 110), &image);
 
     graphics.clip_mut().set_all_valid();
 
@@ -1314,19 +1361,19 @@ fn test_35(graphics: &mut Graphics) {
     image.set_pixel(11, 23, RED);
     image.set_pixel(10, 23, RED);
 
-    graphics.draw_image_unchecked((100, 50), &image);
-    graphics.draw_image_unchecked((130, 50), &image.rotate_cw());
-    graphics.draw_image_unchecked((170, 50), &image.rotate_cw().rotate_cw());
-    graphics.draw_image_unchecked((70, 50), &image.rotate_ccw());
-    graphics.draw_image_unchecked((40, 50), &image.rotate_ccw().rotate_ccw());
+    graphics.draw_image((100, 50), &image);
+    graphics.draw_image((130, 50), &image.rotate_cw());
+    graphics.draw_image((170, 50), &image.rotate_cw().rotate_cw());
+    graphics.draw_image((70, 50), &image.rotate_ccw());
+    graphics.draw_image((40, 50), &image.rotate_ccw().rotate_ccw());
 
     let mut flipped_v = image.clone();
     flipped_v.flip_vertical();
-    graphics.draw_image_unchecked((40, 100), &flipped_v);
+    graphics.draw_image((40, 100), &flipped_v);
 
     let mut flipped_h = image.clone();
     flipped_h.flip_horizontal();
-    graphics.draw_image_unchecked((70, 100), &flipped_h);
+    graphics.draw_image((70, 100), &flipped_h);
 
     let mut image = Image::new_blank(24, 24);
     image.set_pixel(0, 0, BLUE);
@@ -1337,19 +1384,19 @@ fn test_35(graphics: &mut Graphics) {
     image.set_pixel(22, 23, RED);
     image.set_pixel(23, 22, RED);
 
-    graphics.draw_image_unchecked((100, 180), &image);
-    graphics.draw_image_unchecked((130, 180), &image.rotate_cw());
-    graphics.draw_image_unchecked((170, 180), &image.rotate_cw().rotate_cw());
-    graphics.draw_image_unchecked((70, 180), &image.rotate_ccw());
-    graphics.draw_image_unchecked((40, 180), &image.rotate_ccw().rotate_ccw());
+    graphics.draw_image((100, 180), &image);
+    graphics.draw_image((130, 180), &image.rotate_cw());
+    graphics.draw_image((170, 180), &image.rotate_cw().rotate_cw());
+    graphics.draw_image((70, 180), &image.rotate_ccw());
+    graphics.draw_image((40, 180), &image.rotate_ccw().rotate_ccw());
 
     let mut flipped_v = image.clone();
     flipped_v.flip_vertical();
-    graphics.draw_image_unchecked((40, 220), &flipped_v);
+    graphics.draw_image((40, 220), &flipped_v);
 
     let mut flipped_h = image.clone();
     flipped_h.flip_horizontal();
-    graphics.draw_image_unchecked((70, 220), &flipped_h);
+    graphics.draw_image((70, 220), &flipped_h);
 }
 
 fn test_36(graphics: &mut Graphics) {
@@ -1622,11 +1669,31 @@ fn test_sentence(graphics: &mut Graphics, idx: usize, fonts: &[(PixelFont, &str)
 fn test_57(graphics: &mut Graphics) {
     draw_title(graphics, "57) copy_to_indexed_image");
 
-    let mut buffer = Graphics::create_buffer(20, 20);
-    let mut image_graphics = Graphics::new(&mut buffer, 20, 20).unwrap();
+    let mut buffer = Graphics::create_buffer_u8(20, 20);
+    let mut image_graphics = Graphics::new_u8_rgba(&mut buffer, 20, 20).unwrap();
     image_graphics.clear(MID_GRAY);
     image_graphics.draw_rect(Rect::new((0,0), (19,19)), stroke(BLUE));
     let image = image_graphics.copy_to_indexed_image(false).unwrap();
 
     graphics.draw_indexed_image((50,50), &image);
+}
+
+fn test_60(graphics: &mut Graphics, tilemap: &Tilemap<IndexedImage>) {
+    draw_title(graphics, "60) Tilemap");
+
+    let offset = coord!(50,50);
+
+    tilemap.draw(|img,pos| graphics.draw_indexed_image(offset + pos, img));
+}
+
+fn test_61(graphics: &mut Graphics, tilemap: &Tilemap<IndexedImage>, center: &MapPosition) {
+    draw_title(graphics, "60) Tilemap centering");
+
+    let offset = coord!(50,50);
+
+    tilemap.draw(|img,pos| graphics.draw_indexed_image(offset + pos, img));
+    let px = tilemap.onscreen_px_for_tile(*center);
+    graphics.draw_circle(Circle::new(offset+px+(8,8), 8), fill(RED));
+
+    graphics.draw_text(&format!("Centered at\n{center:?}"), TextPos::Px(20,30), (WHITE));
 }

@@ -1,0 +1,28 @@
+(
+    name: "Test",
+    tileset: "test",
+    flags: {
+        1: "wall"
+    },
+    tiles: [
+        (
+            image: "grass",
+            flags: 0,
+        ),
+        (
+            image: "tree",
+            flags: 1,
+        )
+    ],
+    map: [
+        [1,1,1,1,1],
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [1,0,0,0,1],
+        [1,1,1,1,1],
+    ],
+    data: (
+        start: (1,1),
+        exits: [(3,3,"test2",1,1)]
+    )
+)
