@@ -1687,12 +1687,12 @@ fn test_60(graphics: &mut Graphics, tilemap: &Tilemap<IndexedImage>) {
 }
 
 fn test_61(graphics: &mut Graphics, tilemap: &Tilemap<IndexedImage>, center: &MapPosition) {
-    draw_title(graphics, "60) Tilemap centering");
+    draw_title(graphics, "61) Tilemap centering");
 
     let offset = coord!(50,50);
 
     tilemap.draw(|img,pos| graphics.draw_indexed_image(offset + pos, img));
-    let px = tilemap.onscreen_px_for_tile(*center);
+    let px = tilemap.px_for_tile(*center);
     graphics.draw_circle(Circle::new(offset+px+(8,8), 8), fill(RED));
 
     graphics.draw_text(&format!("Centered at\n{center:?}"), TextPos::Px(20,30), (WHITE));
