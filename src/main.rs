@@ -1,10 +1,10 @@
 use anyhow::Result;
 use pixels_graphics_lib::buffer_graphics_lib::renderable_macros::DrawOffset;
 use pixels_graphics_lib::buffer_graphics_lib::CustomLetter;
-use pixels_graphics_lib::prelude::palette::simplify_palette;
 use pixels_graphics_lib::prelude::*;
 use pixels_graphics_lib::prelude::font::standard_4x5;
-use pixels_graphics_lib::prelude::KeyCode::KeyC;
+use pixels_graphics_lib::prelude::palette::simplify_palette;
+use log::trace;
 
 struct Animation {
     pub value: f32,
@@ -181,6 +181,9 @@ impl System for Example {
             59 => test_font(graphics, PixelFont::Limited3x5, "59) Limited 3x5"),
             60 => test_60(graphics, &self.tilemap),
             61 => test_61(graphics, &self.tilemap2, &self.map_center),
+            62 => test_62(graphics, self.mouse_xy),
+            63 => test_63(graphics),
+            64 => test_64(graphics),
             _ => graphics.draw_text(
                 &format!("Unknown test: {}", self.current_test),
                 CENTER.textpos(),
@@ -197,7 +200,7 @@ impl System for Example {
                 self.current_test -= 1;
             }
         } else if keys.contains(&KeyCode::Space) {
-            self.current_test = 61;
+            self.current_test = 64;
         } else if keys.contains(&KeyCode::Escape) {
             self.should_quit = true;
         } else if keys.contains(&KeyCode::KeyW) {
@@ -1471,7 +1474,7 @@ fn test_37(graphics: &mut Graphics) {
     graphics.custom_font.insert(
         chr_to_code('b'),
         CustomLetter {
-            _4x5: [true; standard_4x5::LETTER_PX_COUNT],
+            font_4x5: [true; standard_4x5::LETTER_PX_COUNT],
             ..CustomLetter::default()
         },
     );
@@ -1625,6 +1628,8 @@ fn test_44(graphics: &mut Graphics, image: &IndexedImage) {
     }
 }
 
+
+
 const CHARS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@$%^&*(),./;'\\[]<>?:\"{}_+-=`~#°…¤£¥¢✓€|";
 
 fn test_font(graphics: &mut Graphics, font: PixelFont, name: &str) {
@@ -1696,4 +1701,57 @@ fn test_61(graphics: &mut Graphics, tilemap: &Tilemap<IndexedImage>, center: &Ma
     graphics.draw_circle(Circle::new(offset+px+(8,8), 8), fill(RED));
 
     graphics.draw_text(&format!("Centered at\n{center:?}"), TextPos::Px(20,30), (WHITE));
+}
+
+fn test_62(graphics: &mut Graphics, mouse_xy: Coord) {
+    draw_title(graphics, "62) Ellipse contains point bug");
+
+    let ellipses = [
+        Ellipse::new(coord!(80,50), 100, 20),
+        Ellipse::new(coord!(200,100), 20, 100),
+        Ellipse::new(coord!(200,200), 50, 50)
+    ];
+
+    for ellipse in ellipses {
+        if ellipse.contains(mouse_xy) {
+            graphics.draw_ellipse(ellipse, stroke(BLUE));
+        } else {
+            graphics.draw_ellipse(ellipse, stroke(WHITE));
+        }
+    }
+}
+
+fn test_63(graphics: &mut Graphics) {
+    draw_title(graphics, "63) Circle contains circle bug");
+
+    for y in 0..5 {
+        let outer = Circle::new((30, 35 + y * 42), 20);
+        let inner = Circle::new((30 + y * 5, 35 + y * 42), 10);
+        let contains = outer.contains_circle(&inner);
+        graphics.draw_circle(outer, stroke(WHITE));
+        if contains {
+            graphics.draw_circle(inner, stroke(BLUE));
+        }else {
+            graphics.draw_circle(inner, stroke(RED));
+        }
+    }
+}
+
+fn test_64(graphics: &mut Graphics) {
+    draw_title(graphics, "64) Triangle midpoint bug");
+
+    let triangles = [
+        (BLUE, Triangle::equilateral((30,30), 10, FlatSide::Bottom)),
+        (RED, Triangle::equilateral((60,40), 20, FlatSide::Left)),
+        (YELLOW, Triangle::right_angle((30,60), 20, AnglePosition::BottomRight)),
+        (GREEN, Triangle::right_angle((90,60), 20, AnglePosition::Top)),
+    ];
+
+    for (color, triangle) in triangles {
+        let mid = triangle.center();
+        let oid = triangle.centroid();
+        graphics.set_pixel(mid.x, mid.y, WHITE);
+        graphics.set_pixel(oid.x, oid.y, MAGENTA);
+        graphics.draw_triangle(triangle, stroke(color));
+    }
 }
